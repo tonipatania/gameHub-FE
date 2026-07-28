@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
@@ -43,16 +43,22 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
         }
       </section>
 
-      @if (loading()) {
+      <div #followingTopAnchor></div>
+
+      @if (loading() && followingPage().length === 0) {
         <app-loading-spinner />
       } @else {
         <section class="mb-10">
           <h2 class="mb-4 text-xl font-semibold text-white">Persone che segui</h2>
-          @if (following().length === 0) {
+          @if (followingPage().length === 0) {
             <p class="text-slate-400">Non segui ancora nessuno.</p>
           } @else {
-            <div class="space-y-3">
-              @for (user of following(); track user.id) {
+            <div
+              class="space-y-3 transition-opacity duration-150"
+              [class.opacity-50]="navigatingFollowing()"
+              [class.pointer-events-none]="navigatingFollowing()"
+            >
+              @for (user of followingPage(); track user.id) {
                 <app-user-card
                   [user]="user"
                   [showFollowButton]="true"
@@ -61,23 +67,27 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
                 />
               }
             </div>
-          }
-        </section>
 
-        <section>
-          <h2 class="mb-4 text-xl font-semibold text-white">Persone suggerite</h2>
-          @if (suggested().length === 0) {
-            <p class="text-slate-400">Nessun suggerimento disponibile.</p>
-          } @else {
-            <div class="space-y-3">
-              @for (user of suggested(); track user.id) {
-                <app-user-card
-                  [user]="user"
-                  [showFollowButton]="true"
-                  [isFollowing]="false"
-                  (followToggle)="follow($event)"
-                />
-              }
+            <div class="mt-6 flex items-center justify-center gap-4">
+              <button
+                type="button"
+                (click)="prevFollowingPage()"
+                [disabled]="followingPageIndex() === 0 || navigatingFollowing()"
+                class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ← Precedente
+              </button>
+              <span class="text-sm text-slate-400">
+                Pagina {{ followingPageIndex() + 1 }} di {{ followingTotalPages() }}
+              </span>
+              <button
+                type="button"
+                (click)="nextFollowingPage()"
+                [disabled]="followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()"
+                class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Successiva →
+              </button>
             </div>
           }
         </section>
@@ -90,9 +100,14 @@ export class FriendsComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly fb = inject(FormBuilder);
 
+  private readonly followingTopAnchor = viewChild<ElementRef<HTMLElement>>('followingTopAnchor');
+
   readonly loading = signal(true);
-  readonly following = signal<UserNeo4j[]>([]);
-  readonly suggested = signal<UserNeo4j[]>([]);
+  readonly navigatingFollowing = signal(false);
+  readonly followedUsernames = signal<Set<string>>(new Set());
+  readonly followingPage = signal<UserNeo4j[]>([]);
+  readonly followingPageIndex = signal(0);
+  readonly followingTotalPages = signal(1);
   readonly searchResults = signal<UserNeo4j[]>([]);
   readonly searching = signal(false);
 
@@ -103,24 +118,53 @@ export class FriendsComponent implements OnInit {
     if (!username) return;
 
     this.userService.getFollowedUsers(username).subscribe({
-      next: (list) => this.following.set(list),
+      next: (list) => this.followedUsernames.set(new Set(list.map((u) => u.username))),
     });
 
-    this.userService.getSuggestedFriends(username).subscribe({
-      next: (list) => {
-        this.suggested.set(list);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.loadFollowingPage(0);
 
     this.searchControl.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
       .subscribe((query) => this.search(query));
   }
 
+  private loadFollowingPage(page: number): void {
+    const username = this.auth.getUsername();
+    if (!username) return;
+
+    this.userService.getFollowedUsersPage(username, page, 20).subscribe({
+      next: (result) => {
+        this.followingPage.set(result.content);
+        this.followingPageIndex.set(result.number);
+        this.followingTotalPages.set(result.totalPages);
+        this.loading.set(false);
+        this.navigatingFollowing.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.navigatingFollowing.set(false);
+      },
+    });
+  }
+
+  prevFollowingPage(): void {
+    if (this.followingPageIndex() > 0 && !this.navigatingFollowing()) {
+      this.navigatingFollowing.set(true);
+      this.followingTopAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.loadFollowingPage(this.followingPageIndex() - 1);
+    }
+  }
+
+  nextFollowingPage(): void {
+    if (this.followingPageIndex() < this.followingTotalPages() - 1 && !this.navigatingFollowing()) {
+      this.navigatingFollowing.set(true);
+      this.followingTopAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.loadFollowingPage(this.followingPageIndex() + 1);
+    }
+  }
+
   isFollowing(username: string): boolean {
-    return this.following().some((u) => u.username === username);
+    return this.followedUsernames().has(username);
   }
 
   private search(query: string): void {
@@ -146,13 +190,10 @@ export class FriendsComponent implements OnInit {
 
     this.userService.followUser(current, username).subscribe({
       next: () => {
-        const user =
-          this.suggested().find((u) => u.username === username) ??
-          this.searchResults().find((u) => u.username === username);
-        if (user && !this.isFollowing(username)) {
-          this.following.update((list) => [...list, user]);
-        }
-        this.suggested.update((list) => list.filter((u) => u.username !== username));
+        const updated = new Set(this.followedUsernames());
+        updated.add(username);
+        this.followedUsernames.set(updated);
+        this.loadFollowingPage(this.followingPageIndex());
       },
     });
   }
@@ -163,7 +204,10 @@ export class FriendsComponent implements OnInit {
 
     this.userService.unfollowUser(current, username).subscribe({
       next: () => {
-        this.following.update((list) => list.filter((u) => u.username !== username));
+        const updated = new Set(this.followedUsernames());
+        updated.delete(username);
+        this.followedUsernames.set(updated);
+        this.loadFollowingPage(this.followingPageIndex());
       },
     });
   }

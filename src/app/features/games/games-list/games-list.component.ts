@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
@@ -71,12 +71,18 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
         </form>
       </div>
 
-      @if (loading()) {
+      <div #topAnchor></div>
+
+      @if (loading() && games().length === 0) {
         <app-loading-spinner />
       } @else if (games().length === 0) {
         <p class="text-center text-slate-400">Nessun gioco trovato.</p>
       } @else {
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div
+          class="grid gap-6 transition-opacity duration-150 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          [class.opacity-50]="navigating()"
+          [class.pointer-events-none]="navigating()"
+        >
           @for (game of games(); track game.id) {
             <app-game-card
               [game]="game"
@@ -91,8 +97,8 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
           <button
             type="button"
             (click)="prevPage()"
-            [disabled]="currentPage() === 0"
-            class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 disabled:opacity-40"
+            [disabled]="currentPage() === 0 || navigating()"
+            class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
             ← Precedente
           </button>
@@ -102,8 +108,8 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
           <button
             type="button"
             (click)="nextPage()"
-            [disabled]="currentPage() >= totalPages() - 1"
-            class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 disabled:opacity-40"
+            [disabled]="currentPage() >= totalPages() - 1 || navigating()"
+            class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
             Successiva →
           </button>
@@ -118,7 +124,10 @@ export class GamesComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
+  private readonly topAnchor = viewChild<ElementRef<HTMLElement>>('topAnchor');
+
   readonly loading = signal(true);
+  readonly navigating = signal(false);
   readonly games = signal<Game[]>([]);
   readonly currentPage = signal(0);
   readonly totalPages = signal(1);
@@ -162,8 +171,12 @@ export class GamesComponent implements OnInit {
         this.currentPage.set(result.number);
         this.totalPages.set(result.totalPages);
         this.loading.set(false);
+        this.navigating.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.navigating.set(false);
+      },
     });
   }
 
@@ -185,24 +198,30 @@ export class GamesComponent implements OnInit {
           this.currentPage.set(result.number);
           this.totalPages.set(result.totalPages);
           this.loading.set(false);
+          this.navigating.set(false);
         },
-        error: () => this.loading.set(false),
+        error: () => {
+          this.loading.set(false);
+          this.navigating.set(false);
+        },
       });
   }
 
   prevPage(): void {
-    if (this.currentPage() > 0) {
+    if (this.currentPage() > 0 && !this.navigating()) {
       this.goToPage(this.currentPage() - 1);
     }
   }
 
   nextPage(): void {
-    if (this.currentPage() < this.totalPages() - 1) {
+    if (this.currentPage() < this.totalPages() - 1 && !this.navigating()) {
       this.goToPage(this.currentPage() + 1);
     }
   }
 
   private goToPage(page: number): void {
+    this.navigating.set(true);
+    this.topAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (this.isSearching()) {
       this.applyFilter(page);
     } else {
