@@ -11,6 +11,7 @@ import {
 } from '../models/user.model';
 
 const STORAGE_KEY = 'gamehub_user';
+const TOKEN_KEY = 'gamehub_token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -25,8 +26,8 @@ export class AuthService {
       .post<AuthResponse>(`${environment.apiUrl}/login`, credentials)
       .pipe(
         tap((response) => {
-          if (response.success && response.username) {
-            this.setUser(response.username);
+          if (response.success && response.username && response.token) {
+            this.setUser(response.username, response.token);
           }
         }),
       );
@@ -41,6 +42,7 @@ export class AuthService {
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(TOKEN_KEY);
     }
     this.currentUser.set(null);
     this.router.navigate(['/login']);
@@ -54,13 +56,24 @@ export class AuthService {
     return this.currentUser();
   }
 
-  updateUsername(username: string): void {
-    this.setUser(username);
+  getToken(): string | null {
+    if (!isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+    return sessionStorage.getItem(TOKEN_KEY);
   }
 
-  private setUser(username: string): void {
+  updateUsername(username: string): void {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.setItem(STORAGE_KEY, username);
+    }
+    this.currentUser.set(username);
+  }
+
+  private setUser(username: string, token: string): void {
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.setItem(STORAGE_KEY, username);
+      sessionStorage.setItem(TOKEN_KEY, token);
     }
     this.currentUser.set(username);
   }

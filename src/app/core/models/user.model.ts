@@ -20,4 +20,6 @@ export interface AuthResponse {
   success: boolean;
   errorMessage: string;
   username: string | null;
+  token: string | null;
+  role: string | null;
 }
