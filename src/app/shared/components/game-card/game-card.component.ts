@@ -14,7 +14,7 @@ import { Game } from '../../../core/models/game.model';
           [routerLink]="['/games', encodeName(game().name)]"
           class="flex items-center gap-3 p-3"
         >
-          <div class="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-800">
+          <div class="relative h-11 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-800">
             @if (game().url?.headerImage) {
               <img
                 [src]="game().url!.headerImage"
