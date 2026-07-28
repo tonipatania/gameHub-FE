@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Review } from '../../../core/models/review.model';
 
@@ -24,7 +24,20 @@ import { Review } from '../../../core/models/review.model';
               {{ review().title }}
             </a>
           </div>
-          <p class="mt-3 text-slate-300 leading-relaxed">{{ review().comment }}</p>
+          <p
+            class="mt-3 text-slate-300 leading-relaxed"
+            [class.line-clamp-3]="!expanded() && isLong()"
+          >{{ review().comment }}</p>
+          @if (isLong()) {
+            <button
+              type="button"
+              (click)="expanded.set(!expanded())"
+              class="mt-1 inline-flex cursor-pointer items-center gap-1 rounded-md bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
+            >
+              {{ expanded() ? 'Riduci' : 'Espandi' }}
+              <span class="transition-transform" [class.rotate-180]="expanded()">▾</span>
+            </button>
+          }
         </div>
         <div
           class="flex shrink-0 flex-col items-center rounded-lg bg-slate-800 px-3 py-2"
@@ -51,7 +64,13 @@ export class ReviewCardComponent {
   readonly liked = input(false);
   readonly like = output<string>();
 
+  readonly expanded = signal(false);
+
   encodeName(name: string): string {
     return encodeURIComponent(name);
+  }
+
+  isLong(): boolean {
+    return this.review().comment.length > 220;
   }
 }
