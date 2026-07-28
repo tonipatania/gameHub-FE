@@ -4,7 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
 import { ReviewService } from '../../core/services/review.service';
 import { UserService } from '../../core/services/user.service';
-import { GameNeo4j } from '../../core/models/game.model';
+import { Game } from '../../core/models/game.model';
 import { Review } from '../../core/models/review.model';
 import { UserNeo4j } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
@@ -68,7 +68,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
               } @else {
                 <div class="space-y-3">
                   @for (game of suggestedGames(); track game.id) {
-                    <app-game-card [game]="toGame(game)" />
+                    <app-game-card [game]="game" [compact]="true" />
                   }
                 </div>
               }
@@ -106,7 +106,7 @@ export class HomeComponent implements OnInit {
   readonly loading = signal(true);
   readonly username = signal('');
   readonly reviews = signal<Review[]>([]);
-  readonly suggestedGames = signal<GameNeo4j[]>([]);
+  readonly suggestedGames = signal<Game[]>([]);
   readonly suggestedFriends = signal<UserNeo4j[]>([]);
   readonly followedUsernames = signal<Set<string>>(new Set());
 
@@ -117,23 +117,26 @@ export class HomeComponent implements OnInit {
     this.username.set(user);
 
     forkJoin({
-      games: this.gameService.getAll(0, 8),
+      gamesWithReviews: this.gameService.getGamesWithReviews(20),
       suggestedGames: this.gameService.suggestGames(user),
       suggestedFriends: this.userService.getSuggestedFriends(user),
       followed: this.userService.getFollowedUsers(user),
     }).subscribe({
-      next: ({ games, suggestedGames, suggestedFriends, followed }) => {
+      next: ({ gamesWithReviews, suggestedGames, suggestedFriends, followed }) => {
         this.suggestedGames.set(suggestedGames);
         this.suggestedFriends.set(suggestedFriends);
         this.followedUsernames.set(new Set(followed.map((u) => u.username)));
-        this.loadReviewsFromGames(games.content.slice(0, 6));
+
+        const reviews = gamesWithReviews
+          .flatMap((g) => g.reviews ?? [])
+          .filter((r) => r.id)
+          .sort((a, b) => b.likeCount - a.likeCount)
+          .slice(0, 15);
+        this.reviews.set(reviews);
+        this.loading.set(false);
       },
       error: () => this.loading.set(false),
     });
-  }
-
-  toGame(game: GameNeo4j) {
-    return { id: game.id, name: game.name };
   }
 
   isFollowing(username: string): boolean {
@@ -165,23 +168,6 @@ export class HomeComponent implements OnInit {
           ),
         );
       },
-    });
-  }
-
-  private loadReviewsFromGames(games: { name: string }[]): void {
-    if (games.length === 0) {
-      this.loading.set(false);
-      return;
-    }
-
-    const requests = games.map((g) => this.reviewService.getByGameTitle(g.name));
-    forkJoin(requests).subscribe({
-      next: (results) => {
-        const all = results.flat().sort((a, b) => b.likeCount - a.likeCount);
-        this.reviews.set(all.slice(0, 15));
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
     });
   }
 }
