@@ -54,6 +54,15 @@ import { Game } from '../../../core/models/game.model';
               🎮
             </div>
           }
+          @if (showPrice()) {
+            <!-- in alto a sinistra: l'angolo destro resta al voto, cosi i due badge non si sovrappongono -->
+            <span
+              class="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-xs font-semibold backdrop-blur"
+              [class]="isFree() ? 'bg-emerald-500/90 text-white' : 'bg-slate-950/80 text-white'"
+            >
+              {{ priceLabel() }}
+            </span>
+          }
           @if (game().avgScore) {
             <span
               class="absolute right-2 top-2 rounded-full bg-emerald-500/90 px-2 py-0.5 text-xs font-semibold text-white"
@@ -98,8 +107,18 @@ export class GameCardComponent {
   readonly game = input.required<Game>();
   readonly inWishlist = input(false);
   readonly showWishlistButton = input(false);
+  readonly showPrice = input(false);
   readonly compact = input(false);
   readonly wishlistToggle = output<string>();
+
+  // prezzo assente e prezzo 0 sono entrambi "gratis": nel catalogo 16k giochi hanno Price a 0
+  isFree(): boolean {
+    return !this.game().price;
+  }
+
+  priceLabel(): string {
+    return this.isFree() ? 'Gratis' : '€' + this.game().price!.toFixed(2);
+  }
 
   encodeName(name: string): string {
     return encodeURIComponent(name);

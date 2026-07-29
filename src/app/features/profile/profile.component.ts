@@ -4,7 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
-import { GameNeo4j } from '../../core/models/game.model';
+import { Game } from '../../core/models/game.model';
 import { UserNeo4j } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
@@ -103,7 +103,7 @@ export class ProfileComponent implements OnInit {
 
   readonly loading = signal(true);
   readonly user = signal<UserNeo4j | null>(null);
-  readonly wishlist = signal<GameNeo4j[]>([]);
+  readonly wishlist = signal<Game[]>([]);
   readonly isFollowing = signal(false);
   readonly updateMessage = signal('');
 
