@@ -75,6 +75,13 @@ import { Game } from '../../../core/models/game.model';
           <h3 class="truncate text-lg font-semibold text-white transition group-hover:text-violet-300">
             {{ game().name }}
           </h3>
+          @if (badge()) {
+            <span
+              class="mt-2 inline-block rounded-full bg-violet-500/20 px-2 py-0.5 text-xs font-medium text-violet-300"
+            >
+              {{ badge() }}
+            </span>
+          }
           @if (game().genres) {
             <p class="mt-1 truncate text-sm text-slate-400">{{ game().genres }}</p>
           }
@@ -115,6 +122,8 @@ export class GameCardComponent {
   readonly inWishlist = input(false);
   readonly showWishlistButton = input(false);
   readonly showPrice = input(false);
+  /** chip opzionale sotto il titolo, es. "In comune" nel profilo di un altro utente */
+  readonly badge = input('');
   readonly compact = input(false);
   readonly wishlistToggle = output<string>();
 

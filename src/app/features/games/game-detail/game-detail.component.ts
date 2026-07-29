@@ -8,6 +8,7 @@ import { UserService } from '../../../core/services/user.service';
 import { Game } from '../../../core/models/game.model';
 import { Review } from '../../../core/models/review.model';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { BackButtonComponent } from '../../../shared/components/back-button/back-button.component';
 import { ReviewCardComponent } from '../../../shared/components/review-card/review-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 
@@ -16,12 +17,14 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
   imports: [
     ReactiveFormsModule,
     NavbarComponent,
+    BackButtonComponent,
     ReviewCardComponent,
     LoadingSpinnerComponent,
   ],
   template: `
     <app-navbar />
     <main class="mx-auto max-w-5xl px-4 py-8">
+      <app-back-button fallback="/games" />
       @if (loading()) {
         <app-loading-spinner />
       } @else if (!game()) {
