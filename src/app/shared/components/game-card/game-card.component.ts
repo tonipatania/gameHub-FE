@@ -7,7 +7,7 @@ import { Game } from '../../../core/models/game.model';
   imports: [RouterLink],
   template: `
     <article
-      class="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 transition hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10"
+      class="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 transition hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10 focus-within:border-violet-500"
     >
       @if (compact()) {
         <a
@@ -72,22 +72,20 @@ import { Game } from '../../../core/models/game.model';
           }
         </div>
         <div class="p-4">
-          <h3 class="truncate text-lg font-semibold text-white">{{ game().name }}</h3>
+          <h3 class="truncate text-lg font-semibold text-white transition group-hover:text-violet-300">
+            {{ game().name }}
+          </h3>
           @if (game().genres) {
             <p class="mt-1 truncate text-sm text-slate-400">{{ game().genres }}</p>
           }
-          <div class="mt-3 flex items-center justify-between gap-2">
-            <a
-              [routerLink]="['/games', encodeName(game().name)]"
-              class="text-sm font-medium text-violet-400 hover:text-violet-300"
-            >
-              Dettagli →
-            </a>
-            @if (showWishlistButton()) {
+          @if (showWishlistButton()) {
+            <div class="mt-3 flex justify-end">
+              <!-- z-20 tiene il bottone sopra il link a tutta card, altrimenti il click su
+                   "wishlist" verrebbe intercettato dalla navigazione al dettaglio -->
               <button
                 type="button"
                 (click)="wishlistToggle.emit(game().name); $event.stopPropagation()"
-                class="rounded-lg px-3 py-1 text-xs font-medium transition"
+                class="relative z-20 rounded-lg px-3 py-1 text-xs font-medium transition"
                 [class]="
                   inWishlist()
                     ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
@@ -96,9 +94,18 @@ import { Game } from '../../../core/models/game.model';
               >
                 {{ inWishlist() ? '♥ In wishlist' : '+ Wishlist' }}
               </button>
-            }
-          </div>
+            </div>
+          }
         </div>
+
+        <!-- link sovrapposto a tutta la card: rende cliccabile l'intera superficie restando un
+             vero <a> (navigabile da tastiera, apribile in una nuova scheda) senza annidare il
+             bottone dentro l'anchor, che sarebbe HTML non valido -->
+        <a
+          [routerLink]="['/games', encodeName(game().name)]"
+          class="absolute inset-0 z-10 focus:outline-none"
+          [attr.aria-label]="game().name"
+        ></a>
       }
     </article>
   `,
