@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { UserNeo4j } from '../../../core/models/user.model';
+import { SuggestedUser } from '../../../core/models/user.model';
 
 @Component({
   selector: 'app-user-card',
@@ -17,7 +17,7 @@ import { UserNeo4j } from '../../../core/models/user.model';
         </div>
         <div class="min-w-0">
           <p class="truncate font-semibold text-white">{{ user().username }}</p>
-          <p class="text-xs text-slate-500">Gamer su GameHub</p>
+          <p class="truncate text-xs text-slate-500">{{ subtitle() }}</p>
         </div>
       </a>
       @if (showFollowButton()) {
@@ -38,12 +38,31 @@ import { UserNeo4j } from '../../../core/models/user.model';
   `,
 })
 export class UserCardComponent {
-  readonly user = input.required<UserNeo4j>();
+  readonly user = input.required<SuggestedUser>();
   readonly isFollowing = input(false);
   readonly showFollowButton = input(false);
   readonly followToggle = output<string>();
 
   initials(): string {
     return this.user().username.slice(0, 2).toUpperCase();
+  }
+
+  // spiega perche l'utente e stato suggerito; fuori dai suggerimenti resta l'etichetta generica
+  subtitle(): string {
+    const u = this.user();
+    switch (u.reason) {
+      case 'COMMON_FRIENDS':
+        return `${this.plural(u.commonGames)} in comune · tra i tuoi contatti`;
+      case 'SIMILAR_TASTES':
+        return `${this.plural(u.commonGames)} in comune`;
+      case 'POPULAR':
+        return u.followers ? `Tra i più seguiti · ${u.followers} follower` : 'Tra i più seguiti';
+      default:
+        return 'Gamer su GameHub';
+    }
+  }
+
+  private plural(n: number | null | undefined): string {
+    return n === 1 ? '1 gioco' : `${n ?? 0} giochi`;
   }
 }

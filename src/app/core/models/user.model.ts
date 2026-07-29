@@ -3,6 +3,15 @@ export interface UserNeo4j {
   username: string;
 }
 
+/** Motivo per cui il backend suggerisce un utente (cascata in UserNeo4jService). */
+export type SuggestionReason = 'COMMON_FRIENDS' | 'SIMILAR_TASTES' | 'POPULAR';
+
+export interface SuggestedUser extends UserNeo4j {
+  reason?: SuggestionReason;
+  commonGames?: number | null;
+  followers?: number | null;
+}
+
 export interface LoginRequest {
   username: string;
   password: string;

@@ -6,7 +6,7 @@ import { ReviewService } from '../../core/services/review.service';
 import { UserService } from '../../core/services/user.service';
 import { Game } from '../../core/models/game.model';
 import { Review } from '../../core/models/review.model';
-import { UserNeo4j } from '../../core/models/user.model';
+import { SuggestedUser } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
 import { ReviewCardComponent } from '../../shared/components/review-card/review-card.component';
@@ -107,7 +107,7 @@ export class HomeComponent implements OnInit {
   readonly username = signal('');
   readonly reviews = signal<Review[]>([]);
   readonly suggestedGames = signal<Game[]>([]);
-  readonly suggestedFriends = signal<UserNeo4j[]>([]);
+  readonly suggestedFriends = signal<SuggestedUser[]>([]);
   readonly followedUsernames = signal<Set<string>>(new Set());
 
   ngOnInit(): void {

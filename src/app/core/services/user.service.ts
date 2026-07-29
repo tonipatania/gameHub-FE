@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { GameNeo4j, Page } from '../models/game.model';
-import { UserNeo4j } from '../models/user.model';
+import { SuggestedUser, UserNeo4j } from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -79,10 +79,10 @@ export class UserService {
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
   }
 
-  getSuggestedFriends(username: string): Observable<UserNeo4j[]> {
+  getSuggestedFriends(username: string): Observable<SuggestedUser[]> {
     const params = new HttpParams().set('username', username);
     return this.http
-      .get<UserNeo4j[] | string>(`${environment.apiUrl}/user/SuggestFriends`, {
+      .get<SuggestedUser[] | string>(`${environment.apiUrl}/user/SuggestFriends`, {
         params,
       })
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
