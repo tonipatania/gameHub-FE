@@ -7,6 +7,7 @@ import { UserNeo4j } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslationService } from '../../core/services/translation.service';
 
 @Component({
   selector: 'app-friends',
@@ -14,20 +15,20 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
   template: `
     <app-navbar />
     <main class="mx-auto max-w-3xl px-4 py-8">
-      <h1 class="mb-8 text-3xl font-bold text-white">Community</h1>
+      <h1 class="mb-8 text-3xl font-bold text-white">{{ i18n.t('friends.title') }}</h1>
 
       <section class="mb-10">
-        <h2 class="mb-4 text-xl font-semibold text-white">Aggiungi persone</h2>
+        <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.addPeopleTitle') }}</h2>
         <input
           [formControl]="searchControl"
-          placeholder="Cerca per username..."
+          [placeholder]="i18n.t('friends.searchPlaceholder')"
           class="mb-4 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
         />
         @if (searching()) {
           <app-loading-spinner />
         } @else if (searchControl.value) {
           @if (searchResults().length === 0) {
-            <p class="text-slate-400">Nessun utente trovato.</p>
+            <p class="text-slate-400">{{ i18n.t('friends.noUsersFound') }}</p>
           } @else {
             <div class="space-y-3">
               @for (user of searchResults(); track user.id) {
@@ -49,9 +50,9 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
         <app-loading-spinner />
       } @else {
         <section class="mb-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">Persone che segui</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.followingTitle') }}</h2>
           @if (followingPage().length === 0) {
-            <p class="text-slate-400">Non segui ancora nessuno.</p>
+            <p class="text-slate-400">{{ i18n.t('friends.notFollowingAnyone') }}</p>
           } @else {
             <div
               class="space-y-3 transition-opacity duration-150"
@@ -75,10 +76,10 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
                 [disabled]="followingPageIndex() === 0 || navigatingFollowing()"
                 class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
               >
-                ← Precedente
+                {{ i18n.t('common.prev') }}
               </button>
               <span class="text-sm text-slate-400">
-                Pagina {{ followingPageIndex() + 1 }} di {{ followingTotalPages() }}
+                {{ i18n.t('common.pageOf', { current: followingPageIndex() + 1, total: followingTotalPages() }) }}
               </span>
               <button
                 type="button"
@@ -86,7 +87,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
                 [disabled]="followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()"
                 class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
               >
-                Successiva →
+                {{ i18n.t('common.next') }}
               </button>
             </div>
           }
@@ -99,6 +100,7 @@ export class FriendsComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(TranslationService);
 
   private readonly followingTopAnchor = viewChild<ElementRef<HTMLElement>>('followingTopAnchor');
 

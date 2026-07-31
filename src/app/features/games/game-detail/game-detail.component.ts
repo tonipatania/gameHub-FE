@@ -11,6 +11,7 @@ import { NavbarComponent } from '../../../shared/components/navbar/navbar.compon
 import { BackButtonComponent } from '../../../shared/components/back-button/back-button.component';
 import { ReviewCardComponent } from '../../../shared/components/review-card/review-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-game-detail',
@@ -28,7 +29,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       @if (loading()) {
         <app-loading-spinner />
       } @else if (!game()) {
-        <p class="text-center text-slate-400">Gioco non trovato.</p>
+        <p class="text-center text-slate-400">{{ i18n.t('gameDetail.notFound') }}</p>
       } @else {
         @let g = game()!;
         <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80">
@@ -61,7 +62,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
                       : 'bg-violet-600 text-white hover:bg-violet-500'
                   "
                 >
-                  {{ inWishlist() ? '♥ In wishlist' : '+ Aggiungi alla wishlist' }}
+                  {{ inWishlist() ? i18n.t('gameDetail.inWishlist') : i18n.t('gameDetail.addToWishlist') }}
                 </button>
               </div>
             </div>
@@ -73,25 +74,25 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
             <dl class="mt-6 grid gap-4 sm:grid-cols-2">
               @if (g.developers) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">Sviluppatori</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.developers') }}</dt>
                   <dd class="text-slate-300">{{ g.developers }}</dd>
                 </div>
               }
               @if (g.publishers) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">Publisher</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.publisher') }}</dt>
                   <dd class="text-slate-300">{{ g.publishers }}</dd>
                 </div>
               }
               @if (g.releaseDate) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">Uscita</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.releaseDate') }}</dt>
                   <dd class="text-slate-300">{{ g.releaseDate }}</dd>
                 </div>
               }
               @if (g.price != null) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">Prezzo</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.price') }}</dt>
                   <dd class="text-slate-300">{{ g.price }} €</dd>
                 </div>
               }
@@ -100,14 +101,14 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
         </div>
 
         <section class="mt-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">Scrivi una recensione</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('gameDetail.writeReviewTitle') }}</h2>
           <form
             [formGroup]="reviewForm"
             (ngSubmit)="submitReview()"
             class="rounded-xl border border-slate-800 bg-slate-900/80 p-6"
           >
             <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">Commento</span>
+              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('gameDetail.commentLabel') }}</span>
               <textarea
                 formControlName="comment"
                 rows="3"
@@ -115,7 +116,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
               ></textarea>
             </label>
             <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">Voto (1-10)</span>
+              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('gameDetail.scoreLabel') }}</span>
               <input
                 formControlName="userScore"
                 type="number"
@@ -132,17 +133,17 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
               [disabled]="reviewForm.invalid || submittingReview()"
               class="rounded-lg bg-violet-600 px-6 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
             >
-              Pubblica recensione
+              {{ i18n.t('gameDetail.publishReview') }}
             </button>
           </form>
         </section>
 
         <section class="mt-10">
           <h2 class="mb-4 text-xl font-semibold text-white">
-            Top recensioni ({{ reviews().length }})
+            {{ i18n.t('gameDetail.topReviewsTitle', { count: reviews().length }) }}
           </h2>
           @if (reviews().length === 0) {
-            <p class="text-slate-400">Sii il primo a recensire questo gioco!</p>
+            <p class="text-slate-400">{{ i18n.t('gameDetail.noReviews') }}</p>
           } @else {
             <div class="space-y-4">
               @for (review of reviews(); track review.id) {
@@ -162,6 +163,7 @@ export class GameDetailComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
   readonly game = signal<Game | null>(null);
@@ -213,7 +215,7 @@ export class GameDetailComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submittingReview.set(false);
-          this.reviewMessage.set('Recensione pubblicata!');
+          this.reviewMessage.set(this.i18n.t('gameDetail.reviewPublished'));
           this.reviewForm.reset({ comment: '', userScore: 8 });
           this.loadReviews();
         },
