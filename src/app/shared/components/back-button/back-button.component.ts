@@ -1,6 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-back-button',
@@ -10,15 +11,16 @@ import { Router } from '@angular/router';
       (click)="goBack()"
       class="mb-6 inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-300 transition hover:border-violet-500/50 hover:text-white"
     >
-      <span aria-hidden="true">←</span> {{ label() }}
+      <span aria-hidden="true">←</span> {{ label() || i18n.t('backButton.default') }}
     </button>
   `,
 })
 export class BackButtonComponent {
   private readonly location = inject(Location);
   private readonly router = inject(Router);
+  readonly i18n = inject(TranslationService);
 
-  readonly label = input('Indietro');
+  readonly label = input('');
   /** dove andare quando non c'e' cronologia (link aperto in una scheda nuova, refresh) */
   readonly fallback = input('/home');
 

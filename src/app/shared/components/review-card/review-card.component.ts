@@ -1,6 +1,7 @@
-import { Component, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Review } from '../../../core/models/review.model';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-review-card',
@@ -34,7 +35,7 @@ import { Review } from '../../../core/models/review.model';
               (click)="expanded.set(!expanded())"
               class="mt-1 inline-flex cursor-pointer items-center gap-1 rounded-md bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-300 transition hover:bg-slate-700 hover:text-white"
             >
-              {{ expanded() ? 'Riduci' : 'Espandi' }}
+              {{ expanded() ? i18n.t('reviewCard.collapse') : i18n.t('reviewCard.expand') }}
               <span class="transition-transform" [class.rotate-180]="expanded()">▾</span>
             </button>
           }
@@ -53,13 +54,15 @@ import { Review } from '../../../core/models/review.model';
           class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition hover:bg-slate-800"
           [class]="liked() ? 'text-rose-400' : 'text-slate-400 hover:text-rose-400'"
         >
-          ♥ {{ review().likeCount }} like
+          ♥ {{ review().likeCount }} {{ i18n.t('reviewCard.likeSuffix') }}
         </button>
       </div>
     </article>
   `,
 })
 export class ReviewCardComponent {
+  readonly i18n = inject(TranslationService);
+
   readonly review = input.required<Review>();
   readonly liked = input(false);
   readonly like = output<string>();

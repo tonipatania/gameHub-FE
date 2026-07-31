@@ -12,6 +12,7 @@ import { GameCardComponent } from '../../shared/components/game-card/game-card.c
 import { ReviewCardComponent } from '../../shared/components/review-card/review-card.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslationService } from '../../core/services/translation.service';
 
 @Component({
   selector: 'app-home',
@@ -27,10 +28,10 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
     <main class="mx-auto max-w-7xl px-4 py-8">
       <section class="mb-10">
         <h1 class="text-3xl font-bold text-white">
-          Bentornato, {{ username() }} 👋
+          {{ i18n.t('home.welcome', { name: username() }) }}
         </h1>
         <p class="mt-2 text-slate-400">
-          Scopri giochi, recensioni e persone in base alle tue interazioni
+          {{ i18n.t('home.subtitle') }}
         </p>
       </section>
 
@@ -40,10 +41,10 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
         <div class="grid gap-8 lg:grid-cols-3">
           <div class="space-y-8 lg:col-span-2">
             <section>
-              <h2 class="mb-4 text-xl font-semibold text-white">Feed recensioni</h2>
+              <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('home.reviewFeedTitle') }}</h2>
               @if (reviews().length === 0) {
                 <p class="rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-slate-400">
-                  Nessuna recensione disponibile. Esplora i giochi e lascia la tua!
+                  {{ i18n.t('home.noReviews') }}
                 </p>
               } @else {
                 <div class="space-y-4">
@@ -60,10 +61,10 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 
           <aside class="space-y-8">
             <section>
-              <h2 class="mb-4 text-lg font-semibold text-white">Giochi consigliati</h2>
+              <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('home.suggestedGamesTitle') }}</h2>
               @if (suggestedGames().length === 0) {
                 <p class="text-sm text-slate-500">
-                  Interagisci con la piattaforma per ricevere suggerimenti personalizzati.
+                  {{ i18n.t('home.noSuggestedGames') }}
                 </p>
               } @else {
                 <div class="space-y-3">
@@ -75,9 +76,9 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
             </section>
 
             <section>
-              <h2 class="mb-4 text-lg font-semibold text-white">Persone da seguire</h2>
+              <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('home.suggestedFriendsTitle') }}</h2>
               @if (suggestedFriends().length === 0) {
-                <p class="text-sm text-slate-500">Nessun suggerimento al momento.</p>
+                <p class="text-sm text-slate-500">{{ i18n.t('home.noSuggestedFriends') }}</p>
               } @else {
                 <div class="space-y-3">
                   @for (user of suggestedFriends(); track user.id) {
@@ -102,6 +103,7 @@ export class HomeComponent implements OnInit {
   private readonly gameService = inject(GameService);
   private readonly reviewService = inject(ReviewService);
   private readonly userService = inject(UserService);
+  readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
   readonly username = signal('');

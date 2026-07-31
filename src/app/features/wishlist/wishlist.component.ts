@@ -6,6 +6,7 @@ import { Game } from '../../core/models/game.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslationService } from '../../core/services/translation.service';
 
 type SortKey = 'name' | 'price' | 'release';
 
@@ -20,13 +21,15 @@ type SortKey = 'name' | 'price' | 'release';
       >
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 class="text-3xl font-bold text-white">La mia wishlist</h1>
+            <h1 class="text-3xl font-bold text-white">{{ i18n.t('wishlist.title') }}</h1>
             <p class="mt-2 text-slate-400">
               @if (games().length === 0) {
-                I giochi che vuoi giocare
+                {{ i18n.t('wishlist.subtitleEmpty') }}
               } @else {
-                {{ games().length }}
-                {{ games().length === 1 ? 'gioco che aspetti' : 'giochi che aspetti' }} di giocare
+                {{ i18n.t(
+                  games().length === 1 ? 'wishlist.subtitleCountSingular' : 'wishlist.subtitleCountPlural',
+                  { count: games().length }
+                ) }}
               }
             </p>
           </div>
@@ -36,19 +39,19 @@ type SortKey = 'name' | 'price' | 'release';
         @if (games().length > 0) {
           <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">Giochi</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsGames') }}</dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ games().length }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">Valore totale</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsValue') }}</dt>
               <dd class="mt-1 text-2xl font-bold text-emerald-400">{{ totalPrice() }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">Generi</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsGenres') }}</dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ genreCount() }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">Genere top</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsTopGenre') }}</dt>
               <dd class="mt-1 truncate text-2xl font-bold text-violet-300" [title]="topGenre()">
                 {{ topGenre() }}
               </dd>
@@ -62,20 +65,20 @@ type SortKey = 'name' | 'price' | 'release';
       } @else if (games().length === 0) {
         <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-12 text-center">
           <p class="text-5xl">🕹️</p>
-          <p class="mt-4 text-lg font-medium text-white">La tua wishlist è vuota</p>
+          <p class="mt-4 text-lg font-medium text-white">{{ i18n.t('wishlist.emptyTitle') }}</p>
           <p class="mt-1 text-slate-400">
-            Aggiungi i giochi che ti incuriosiscono e li ritrovi qui.
+            {{ i18n.t('wishlist.emptySubtitle') }}
           </p>
           <a
             routerLink="/games"
             class="mt-6 inline-block rounded-lg bg-violet-600 px-5 py-2.5 font-medium text-white transition hover:bg-violet-500"
           >
-            Esplora il catalogo →
+            {{ i18n.t('wishlist.exploreCatalog') }}
           </a>
         </div>
       } @else {
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-white">I tuoi giochi</h2>
+          <h2 class="text-lg font-semibold text-white">{{ i18n.t('wishlist.yourGames') }}</h2>
           <div class="flex gap-1 rounded-lg border border-slate-800 bg-slate-900/60 p-1">
             @for (option of sortOptions; track option.key) {
               <button
@@ -88,7 +91,7 @@ type SortKey = 'name' | 'price' | 'release';
                     : 'text-slate-400 hover:text-white'
                 "
               >
-                {{ option.label }}
+                {{ i18n.t(option.labelKey) }}
               </button>
             }
           </div>
@@ -112,6 +115,7 @@ type SortKey = 'name' | 'price' | 'release';
 export class WishlistComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
+  readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
   readonly games = signal<Game[]>([]);
@@ -119,10 +123,10 @@ export class WishlistComponent implements OnInit {
 
   // niente ordinamento per voto: avgScore vale 0 su oltre il 99% del catalogo, quindi sarebbe
   // un pulsante che non cambia nulla
-  readonly sortOptions: { key: SortKey; label: string }[] = [
-    { key: 'name', label: 'Nome' },
-    { key: 'price', label: 'Prezzo' },
-    { key: 'release', label: 'Uscita' },
+  readonly sortOptions: { key: SortKey; labelKey: string }[] = [
+    { key: 'name', labelKey: 'wishlist.sortName' },
+    { key: 'price', labelKey: 'wishlist.sortPrice' },
+    { key: 'release', labelKey: 'wishlist.sortRelease' },
   ];
 
   readonly sortedGames = computed(() => {
@@ -141,7 +145,7 @@ export class WishlistComponent implements OnInit {
 
   readonly totalPrice = computed(() => {
     const total = this.games().reduce((sum, g) => sum + (g.price ?? 0), 0);
-    return total === 0 ? 'Gratis' : '€' + total.toFixed(2);
+    return total === 0 ? this.i18n.t('common.free') : '€' + total.toFixed(2);
   });
 
   private readonly genreTally = computed(() => {

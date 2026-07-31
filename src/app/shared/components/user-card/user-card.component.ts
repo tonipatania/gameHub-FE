@@ -1,6 +1,7 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SuggestedUser } from '../../../core/models/user.model';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-user-card',
@@ -31,13 +32,15 @@ import { SuggestedUser } from '../../../core/models/user.model';
               : 'bg-violet-600 text-white hover:bg-violet-500'
           "
         >
-          {{ isFollowing() ? 'Segui già' : 'Segui' }}
+          {{ isFollowing() ? i18n.t('userCard.alreadyFollowing') : i18n.t('userCard.follow') }}
         </button>
       }
     </article>
   `,
 })
 export class UserCardComponent {
+  readonly i18n = inject(TranslationService);
+
   readonly user = input.required<SuggestedUser>();
   readonly isFollowing = input(false);
   readonly showFollowButton = input(false);
@@ -52,17 +55,19 @@ export class UserCardComponent {
     const u = this.user();
     switch (u.reason) {
       case 'COMMON_FRIENDS':
-        return `${this.plural(u.commonGames)} in comune · tra i tuoi contatti`;
+        return this.i18n.t('userCard.commonFriendsSubtitle', { games: this.plural(u.commonGames) });
       case 'SIMILAR_TASTES':
-        return `${this.plural(u.commonGames)} in comune`;
+        return this.i18n.t('userCard.similarTastesSubtitle', { games: this.plural(u.commonGames) });
       case 'POPULAR':
-        return u.followers ? `Tra i più seguiti · ${u.followers} follower` : 'Tra i più seguiti';
+        return u.followers
+          ? this.i18n.t('userCard.popularWithFollowers', { count: u.followers })
+          : this.i18n.t('userCard.popular');
       default:
-        return 'Gamer su GameHub';
+        return this.i18n.t('userCard.genericGamer');
     }
   }
 
   private plural(n: number | null | undefined): string {
-    return n === 1 ? '1 gioco' : `${n ?? 0} giochi`;
+    return n === 1 ? this.i18n.t('userCard.gamesSingular') : this.i18n.t('userCard.gamesPlural', { count: n ?? 0 });
   }
 }

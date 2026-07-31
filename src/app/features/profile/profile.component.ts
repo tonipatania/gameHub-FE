@@ -10,6 +10,7 @@ import { NavbarComponent } from '../../shared/components/navbar/navbar.component
 import { BackButtonComponent } from '../../shared/components/back-button/back-button.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslationService } from '../../core/services/translation.service';
 
 type WishlistSortKey = 'name' | 'price' | 'release';
 
@@ -29,7 +30,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
       @if (loading()) {
         <app-loading-spinner />
       } @else if (!user()) {
-        <p class="text-center text-slate-400">Utente non trovato.</p>
+        <p class="text-center text-slate-400">{{ i18n.t('profile.notFound') }}</p>
       } @else {
         <div class="mb-8 flex items-center gap-4">
           <div
@@ -39,25 +40,25 @@ type WishlistSortKey = 'name' | 'price' | 'release';
           </div>
           <div>
             <h1 class="text-3xl font-bold text-white">{{ user()!.username }}</h1>
-            <p class="text-slate-400">Profilo GameHub</p>
+            <p class="text-slate-400">{{ i18n.t('profile.subtitle') }}</p>
           </div>
         </div>
 
         @if (isOwnProfile()) {
           <section class="mb-8 rounded-xl border border-slate-800 bg-slate-900/80 p-6">
-            <h2 class="mb-4 text-lg font-semibold text-white">Modifica username</h2>
+            <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('profile.editUsernameTitle') }}</h2>
             <form [formGroup]="usernameForm" (ngSubmit)="updateUsername()" class="flex gap-3">
               <input
                 formControlName="newUsername"
                 class="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
-                placeholder="Nuovo username"
+                [placeholder]="i18n.t('profile.newUsernamePlaceholder')"
               />
               <button
                 type="submit"
                 [disabled]="usernameForm.invalid"
                 class="rounded-lg bg-violet-600 px-4 py-2 text-sm text-white hover:bg-violet-500 disabled:opacity-50"
               >
-                Aggiorna
+                {{ i18n.t('profile.updateButton') }}
               </button>
             </form>
             @if (updateMessage()) {
@@ -75,27 +76,27 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                 : 'bg-violet-600 text-white hover:bg-violet-500'
             "
           >
-            {{ isFollowing() ? 'Non seguire più' : 'Segui' }}
+            {{ isFollowing() ? i18n.t('profile.unfollowButton') : i18n.t('profile.followButton') }}
           </button>
         }
 
         <section>
-          <h2 class="mb-4 text-xl font-semibold text-white">Wishlist pubblica</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('profile.wishlistTitle') }}</h2>
 
           @if (wishlistTotal() > 0) {
             <dl class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                <dt class="text-xs uppercase tracking-wide text-slate-500">Giochi</dt>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('profile.statsGames') }}</dt>
                 <dd class="mt-1 text-2xl font-bold text-white">{{ wishlistTotal() }}</dd>
               </div>
               @if (!isOwnProfile()) {
                 <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">In comune</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('profile.statsCommon') }}</dt>
                   <dd class="mt-1 text-2xl font-bold text-violet-300">{{ commonCount() }}</dd>
                 </div>
               }
               <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                <dt class="text-xs uppercase tracking-wide text-slate-500">Pagina</dt>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('profile.statsPage') }}</dt>
                 <dd class="mt-1 text-2xl font-bold text-white">
                   {{ wishlistPageIndex() + 1 }}/{{ wishlistTotalPages() }}
                 </dd>
@@ -104,7 +105,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
           }
 
           @if (wishlist().length === 0) {
-            <p class="text-slate-400">Nessun gioco in wishlist.</p>
+            <p class="text-slate-400">{{ i18n.t('profile.emptyWishlist') }}</p>
           } @else {
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
               @if (!isOwnProfile() && commonCount() > 0) {
@@ -118,7 +119,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                       onlyCommon() ? 'text-slate-400 hover:text-white' : 'bg-violet-600 text-white'
                     "
                   >
-                    Tutti ({{ wishlistTotalAll() }})
+                    {{ i18n.t('profile.allTab', { count: wishlistTotalAll() }) }}
                   </button>
                   <button
                     type="button"
@@ -129,11 +130,11 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                       onlyCommon() ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'
                     "
                   >
-                    ★ Solo in comune ({{ commonCount() }})
+                    {{ i18n.t('profile.onlyCommonTab', { count: commonCount() }) }}
                   </button>
                 </div>
               } @else {
-                <span class="text-sm text-slate-400">Ordina per</span>
+                <span class="text-sm text-slate-400">{{ i18n.t('profile.sortByLabel') }}</span>
               }
               <div class="flex gap-1 rounded-lg border border-slate-800 bg-slate-900/60 p-1">
                 @for (option of sortOptions; track option.key) {
@@ -148,7 +149,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                         : 'text-slate-400 hover:text-white'
                     "
                   >
-                    {{ option.label }}
+                    {{ i18n.t(option.labelKey) }}
                   </button>
                 }
               </div>
@@ -159,7 +160,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                 <app-game-card
                   [game]="game"
                   [showPrice]="true"
-                  [badge]="isCommon(game.name) ? '★ In comune' : ''"
+                  [badge]="isCommon(game.name) ? i18n.t('profile.commonBadge') : ''"
                 />
               }
             </div>
@@ -172,10 +173,10 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                   [disabled]="wishlistPageIndex() === 0 || navigatingWishlist()"
                   class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  ← Precedente
+                  {{ i18n.t('common.prev') }}
                 </button>
                 <span class="text-sm text-slate-400">
-                  Pagina {{ wishlistPageIndex() + 1 }} di {{ wishlistTotalPages() }}
+                  {{ i18n.t('profile.pageOfShort', { current: wishlistPageIndex() + 1, total: wishlistTotalPages() }) }}
                 </span>
                 <button
                   type="button"
@@ -185,7 +186,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                   "
                   class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  Successiva →
+                  {{ i18n.t('common.next') }}
                 </button>
               </div>
             }
@@ -200,6 +201,7 @@ export class ProfileComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
   readonly user = signal<UserNeo4j | null>(null);
@@ -216,10 +218,10 @@ export class ProfileComponent implements OnInit {
   readonly isFollowing = signal(false);
   readonly updateMessage = signal('');
 
-  readonly sortOptions: { key: WishlistSortKey; label: string }[] = [
-    { key: 'name', label: 'Nome' },
-    { key: 'price', label: 'Prezzo' },
-    { key: 'release', label: 'Uscita' },
+  readonly sortOptions: { key: WishlistSortKey; labelKey: string }[] = [
+    { key: 'name', labelKey: 'profile.sortName' },
+    { key: 'price', labelKey: 'profile.sortPrice' },
+    { key: 'release', labelKey: 'profile.sortRelease' },
   ];
 
   private static readonly WISHLIST_PAGE_SIZE = 12;
@@ -274,14 +276,14 @@ export class ProfileComponent implements OnInit {
     const newUsername = this.usernameForm.getRawValue().newUsername;
     this.userService.updateUsername(current, newUsername).subscribe({
       next: () => {
-        this.updateMessage.set('Username aggiornato!');
+        this.updateMessage.set(this.i18n.t('profile.usernameUpdated'));
         this.profileUsername = newUsername;
         this.auth.updateUsername(newUsername);
         this.loadProfile();
       },
       error: (err) => {
         this.updateMessage.set(
-          typeof err.error === 'string' ? err.error : 'Errore aggiornamento',
+          typeof err.error === 'string' ? err.error : this.i18n.t('profile.updateError'),
         );
       },
     });

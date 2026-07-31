@@ -8,6 +8,7 @@ import { Game } from '../../../core/models/game.model';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { GameCardComponent } from '../../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-games',
@@ -22,13 +23,13 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
     <main class="mx-auto max-w-7xl px-4 py-8">
       <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-white">Catalogo giochi</h1>
-          <p class="mt-1 text-slate-400">Esplora migliaia di titoli e aggiungili alla wishlist</p>
+          <h1 class="text-3xl font-bold text-white">{{ i18n.t('games.title') }}</h1>
+          <p class="mt-1 text-slate-400">{{ i18n.t('games.subtitle') }}</p>
         </div>
         <form [formGroup]="filterForm" class="flex flex-wrap gap-3">
           <input
             formControlName="name"
-            placeholder="Cerca per nome..."
+            [placeholder]="i18n.t('games.searchPlaceholder')"
             class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
           />
 
@@ -39,9 +40,9 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
               class="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-white outline-none focus:border-violet-500"
             >
               @if (selectedGenres().size === 0) {
-                Generi
+                {{ i18n.t('games.genresLabel') }}
               } @else {
-                Generi ({{ selectedGenres().size }})
+                {{ i18n.t('games.genresLabelCount', { count: selectedGenres().size }) }}
               }
               <span class="text-slate-500">▾</span>
             </button>
@@ -52,7 +53,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
                 class="absolute right-0 z-20 mt-2 max-h-64 w-56 overflow-y-auto rounded-lg border border-slate-700 bg-slate-800 p-2 shadow-xl"
               >
                 @if (allGenres().length === 0) {
-                  <p class="px-2 py-1 text-sm text-slate-500">Nessun genere disponibile</p>
+                  <p class="px-2 py-1 text-sm text-slate-500">{{ i18n.t('games.noGenresAvailable') }}</p>
                 }
                 @for (genre of allGenres(); track genre) {
                   <label class="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-slate-200 hover:bg-slate-700">
@@ -76,7 +77,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
       @if (loading() && games().length === 0) {
         <app-loading-spinner />
       } @else if (games().length === 0) {
-        <p class="text-center text-slate-400">Nessun gioco trovato.</p>
+        <p class="text-center text-slate-400">{{ i18n.t('games.noGamesFound') }}</p>
       } @else {
         <div
           class="grid gap-6 transition-opacity duration-150 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -100,10 +101,10 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
             [disabled]="currentPage() === 0 || navigating()"
             class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
-            ← Precedente
+            {{ i18n.t('common.prev') }}
           </button>
           <span class="text-sm text-slate-400">
-            Pagina {{ currentPage() + 1 }} di {{ totalPages() }}
+            {{ i18n.t('common.pageOf', { current: currentPage() + 1, total: totalPages() }) }}
           </span>
           <button
             type="button"
@@ -111,7 +112,7 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
             [disabled]="currentPage() >= totalPages() - 1 || navigating()"
             class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Successiva →
+            {{ i18n.t('common.next') }}
           </button>
         </div>
       }
@@ -123,6 +124,7 @@ export class GamesComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(TranslationService);
 
   private readonly topAnchor = viewChild<ElementRef<HTMLElement>>('topAnchor');
 

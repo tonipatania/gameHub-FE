@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-signup',
@@ -12,7 +13,7 @@ import { AuthService } from '../../../core/services/auth.service';
         <div class="mb-8 text-center">
           <span class="text-5xl">🎮</span>
           <h1 class="mt-4 text-3xl font-bold text-white">
-            Unisciti a <span class="text-violet-400">GameHub</span>
+            {{ i18n.t('auth.signup.heading') }} <span class="text-violet-400">GameHub</span>
           </h1>
         </div>
 
@@ -28,20 +29,20 @@ import { AuthService } from '../../../core/services/auth.service';
           }
           @if (success()) {
             <div class="mb-4 rounded-lg bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-              Registrazione completata! Reindirizzamento al login...
+              {{ i18n.t('auth.signup.successMessage') }}
             </div>
           }
 
           <div class="mb-4 grid grid-cols-2 gap-3">
             <label>
-              <span class="mb-1 block text-sm text-slate-400">Nome</span>
+              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.nameLabel') }}</span>
               <input
                 formControlName="name"
                 class="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none focus:border-violet-500"
               />
             </label>
             <label>
-              <span class="mb-1 block text-sm text-slate-400">Cognome</span>
+              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.surnameLabel') }}</span>
               <input
                 formControlName="surname"
                 class="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none focus:border-violet-500"
@@ -50,7 +51,7 @@ import { AuthService } from '../../../core/services/auth.service';
           </div>
 
           <label class="mb-4 block">
-            <span class="mb-1 block text-sm text-slate-400">Username</span>
+            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.usernameLabel') }}</span>
             <input
               formControlName="username"
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
@@ -58,7 +59,7 @@ import { AuthService } from '../../../core/services/auth.service';
           </label>
 
           <label class="mb-4 block">
-            <span class="mb-1 block text-sm text-slate-400">Email</span>
+            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.emailLabel') }}</span>
             <input
               formControlName="email"
               type="email"
@@ -67,7 +68,7 @@ import { AuthService } from '../../../core/services/auth.service';
           </label>
 
           <label class="mb-6 block">
-            <span class="mb-1 block text-sm text-slate-400">Password</span>
+            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.passwordLabel') }}</span>
             <input
               formControlName="password"
               type="password"
@@ -80,12 +81,12 @@ import { AuthService } from '../../../core/services/auth.service';
             [disabled]="form.invalid || loading()"
             class="w-full rounded-lg bg-violet-600 py-2.5 font-medium text-white transition hover:bg-violet-500 disabled:opacity-50"
           >
-            {{ loading() ? 'Registrazione...' : 'Crea account' }}
+            {{ loading() ? i18n.t('auth.signup.submitLoading') : i18n.t('auth.signup.submit') }}
           </button>
 
           <p class="mt-6 text-center text-sm text-slate-400">
-            Hai già un account?
-            <a routerLink="/login" class="text-violet-400 hover:text-violet-300">Accedi</a>
+            {{ i18n.t('auth.signup.haveAccount') }}
+            <a routerLink="/login" class="text-violet-400 hover:text-violet-300">{{ i18n.t('auth.signup.loginLink') }}</a>
           </p>
         </form>
       </div>
@@ -96,6 +97,7 @@ export class SignupComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  readonly i18n = inject(TranslationService);
 
   readonly loading = signal(false);
   readonly error = signal('');
@@ -126,7 +128,7 @@ export class SignupComponent {
         this.error.set(
           typeof err.error === 'string'
             ? err.error
-            : 'Errore durante la registrazione',
+            : this.i18n.t('auth.signup.genericError'),
         );
       },
     });

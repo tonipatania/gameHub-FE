@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-navbar',
@@ -22,13 +23,22 @@ import { AuthService } from '../../../core/services/auth.service';
               routerLinkActive="bg-violet-500/20 text-violet-300"
               class="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
             >
-              {{ link.label }}
+              {{ i18n.t(link.labelKey) }}
             </a>
           }
         </div>
 
         <div class="flex items-center gap-3">
           @if (auth.currentUser(); as username) {
+            <a
+              routerLink="/settings"
+              routerLinkActive="text-violet-300"
+              class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              [attr.aria-label]="i18n.t('nav.settings')"
+              [title]="i18n.t('nav.settings')"
+            >
+              ⚙️
+            </a>
             <a
               [routerLink]="['/profile', username]"
               class="hidden text-sm text-slate-400 hover:text-white sm:block"
@@ -40,7 +50,7 @@ import { AuthService } from '../../../core/services/auth.service';
               (click)="auth.logout()"
               class="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:border-slate-600 hover:text-white"
             >
-              Esci
+              {{ i18n.t('nav.logout') }}
             </button>
           }
         </div>
@@ -50,11 +60,12 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class NavbarComponent {
   readonly auth = inject(AuthService);
+  readonly i18n = inject(TranslationService);
 
   readonly navLinks = [
-    { path: '/home', label: 'Home' },
-    { path: '/games', label: 'Giochi' },
-    { path: '/wishlist', label: 'Wishlist' },
-    { path: '/friends', label: 'Community' },
+    { path: '/home', labelKey: 'nav.home' },
+    { path: '/games', labelKey: 'nav.games' },
+    { path: '/wishlist', labelKey: 'nav.wishlist' },
+    { path: '/friends', labelKey: 'nav.community' },
   ];
 }

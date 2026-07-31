@@ -1,6 +1,7 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Game } from '../../../core/models/game.model';
+import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-game-card',
@@ -99,7 +100,7 @@ import { Game } from '../../../core/models/game.model';
                     : 'bg-violet-500/20 text-violet-300 hover:bg-violet-500/30'
                 "
               >
-                {{ inWishlist() ? '♥ In wishlist' : '+ Wishlist' }}
+                {{ inWishlist() ? i18n.t('gameCard.inWishlist') : i18n.t('gameCard.addWishlist') }}
               </button>
             </div>
           }
@@ -118,6 +119,8 @@ import { Game } from '../../../core/models/game.model';
   `,
 })
 export class GameCardComponent {
+  readonly i18n = inject(TranslationService);
+
   readonly game = input.required<Game>();
   readonly inWishlist = input(false);
   readonly showWishlistButton = input(false);
@@ -133,7 +136,7 @@ export class GameCardComponent {
   }
 
   priceLabel(): string {
-    return this.isFree() ? 'Gratis' : '€' + this.game().price!.toFixed(2);
+    return this.isFree() ? this.i18n.t('common.free') : '€' + this.game().price!.toFixed(2);
   }
 
   encodeName(name: string): string {
