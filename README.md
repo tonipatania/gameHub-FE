@@ -1,41 +1,58 @@
-# GameHubFE
+# GameHub — Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.7.
+Angular frontend for **GameHub**, a social network for video games, backed by the Spring Boot
+API in [`../LSMSD-Project`](../LSMSD-Project) (MongoDB + Neo4j).
 
-## Development server
+## Stack
 
-To start a local development server, run:
+- Angular 22 (standalone components, SSR via `@angular/ssr`)
+- TailwindCSS
+- RxJS
 
-```bash
-ng serve
-```
+## Features
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- **Auth**: login and signup
+- **Home**: review feed, recommended games, people to follow
+- **Game catalog**: paginated browsing with search by name/genre
+- **Game detail**: info, reviews, likes, writing reviews, wishlist toggle
+- **Wishlist**: add/remove games to play
+- **Community**: follow users, discover suggested friends (Neo4j-backed)
+- **Profile / Settings**: public wishlist, username editing
 
-## Building
+## Prerequisites
 
-To build the project run:
+1. The Spring Boot backend running on `http://localhost:8080` (see
+   [`../LSMSD-Project`](../LSMSD-Project) for setup and database dumps).
+2. MongoDB and Neo4j configured and populated as described there.
 
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## Running
 
 ```bash
-ng e2e
+npm install
+npm start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The app is available at `http://localhost:4200`. API calls go through the dev proxy
+(`proxy.conf.json`), which forwards `/api/*` to `http://localhost:8080`.
+
+## Test credentials
+
+Use a user from the MongoDB dump, e.g.:
+
+- Username: `Lunark`
+- Password: `jrmag6azycv`
+
+## Production build
+
+```bash
+npm run build
+```
+
+## Structure
+
+```
+src/app/
+├── core/           # models, API services, guards, interceptors, i18n
+├── shared/         # reusable components
+└── features/       # pages: auth, home, games, wishlist, friends, profile, settings
+```
