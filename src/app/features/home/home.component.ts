@@ -2,14 +2,13 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
-import { ReviewService } from '../../core/services/review.service';
 import { UserService } from '../../core/services/user.service';
 import { Game } from '../../core/models/game.model';
 import { Review } from '../../core/models/review.model';
 import { SuggestedUser } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
-import { ReviewCardComponent } from '../../shared/components/review-card/review-card.component';
+import { LikeChange, ReviewCardComponent } from '../../shared/components/review-card/review-card.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../core/services/translation.service';
@@ -51,7 +50,7 @@ import { TranslationService } from '../../core/services/translation.service';
                   @for (review of reviews(); track review.id) {
                     <app-review-card
                       [review]="review"
-                      (like)="onLikeReview($event)"
+                      (likeChange)="onLikeChange($event)"
                     />
                   }
                 </div>
@@ -101,7 +100,6 @@ import { TranslationService } from '../../core/services/translation.service';
 export class HomeComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly gameService = inject(GameService);
-  private readonly reviewService = inject(ReviewService);
   private readonly userService = inject(UserService);
   readonly i18n = inject(TranslationService);
 
@@ -158,18 +156,11 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  onLikeReview(reviewId: string): void {
-    const current = this.auth.getUsername();
-    if (!current) return;
-
-    this.reviewService.likeReview(current, reviewId).subscribe({
-      next: () => {
-        this.reviews.update((list) =>
-          list.map((r) =>
-            r.id === reviewId ? { ...r, likeCount: r.likeCount + 1 } : r,
-          ),
-        );
-      },
-    });
+  onLikeChange({ reviewId, delta }: LikeChange): void {
+    this.reviews.update((list) =>
+      list.map((r) =>
+        r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r,
+      ),
+    );
   }
 }

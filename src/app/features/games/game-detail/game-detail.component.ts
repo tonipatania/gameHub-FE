@@ -9,7 +9,7 @@ import { Game } from '../../../core/models/game.model';
 import { Review } from '../../../core/models/review.model';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { BackButtonComponent } from '../../../shared/components/back-button/back-button.component';
-import { ReviewCardComponent } from '../../../shared/components/review-card/review-card.component';
+import { LikeChange, ReviewCardComponent } from '../../../shared/components/review-card/review-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../../core/services/translation.service';
 
@@ -147,7 +147,7 @@ import { TranslationService } from '../../../core/services/translation.service';
           } @else {
             <div class="space-y-4">
               @for (review of reviews(); track review.id) {
-                <app-review-card [review]="review" (like)="onLikeReview($event)" />
+                <app-review-card [review]="review" (likeChange)="onLikeChange($event)" />
               }
             </div>
           }
@@ -223,19 +223,12 @@ export class GameDetailComponent implements OnInit {
       });
   }
 
-  onLikeReview(reviewId: string): void {
-    const username = this.auth.getUsername();
-    if (!username) return;
-
-    this.reviewService.likeReview(username, reviewId).subscribe({
-      next: () => {
-        this.reviews.update((list) =>
-          list.map((r) =>
-            r.id === reviewId ? { ...r, likeCount: r.likeCount + 1 } : r,
-          ),
-        );
-      },
-    });
+  onLikeChange({ reviewId, delta }: LikeChange): void {
+    this.reviews.update((list) =>
+      list.map((r) =>
+        r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r,
+      ),
+    );
   }
 
   private loadGame(): void {

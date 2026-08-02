@@ -118,6 +118,8 @@ export const it: Record<string, string> = {
   'reviewCard.expand': 'Espandi',
   'reviewCard.collapse': 'Riduci',
   'reviewCard.likeSuffix': 'like',
+  'reviewCard.addLike': 'Metti like a questa recensione',
+  'reviewCard.removeLike': 'Togli il like',
 
   'userCard.alreadyFollowing': 'Segui già',
   'userCard.follow': 'Segui',

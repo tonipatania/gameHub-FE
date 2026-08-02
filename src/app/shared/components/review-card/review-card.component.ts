@@ -1,7 +1,14 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Review } from '../../../core/models/review.model';
+import { AuthService } from '../../../core/services/auth.service';
+import { ReviewService } from '../../../core/services/review.service';
 import { TranslationService } from '../../../core/services/translation.service';
+
+export interface LikeChange {
+  reviewId: string;
+  delta: number;
+}
 
 @Component({
   selector: 'app-review-card',
@@ -50,24 +57,62 @@ import { TranslationService } from '../../../core/services/translation.service';
       <div class="mt-4 flex items-center gap-4 border-t border-slate-800 pt-4">
         <button
           type="button"
-          (click)="like.emit(review().id)"
-          class="flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition hover:bg-slate-800"
+          (click)="onToggleLike()"
+          [disabled]="liking()"
+          [attr.aria-pressed]="liked()"
+          [title]="liked() ? i18n.t('reviewCard.removeLike') : i18n.t('reviewCard.addLike')"
+          class="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition hover:bg-slate-800 disabled:opacity-60"
           [class]="liked() ? 'text-rose-400' : 'text-slate-400 hover:text-rose-400'"
         >
-          ♥ {{ review().likeCount }} {{ i18n.t('reviewCard.likeSuffix') }}
+          <span
+            class="transition-transform duration-200"
+            [class.scale-125]="liked()"
+          >{{ liked() ? '♥' : '♡' }}</span>
+          {{ review().likeCount }} {{ i18n.t('reviewCard.likeSuffix') }}
         </button>
       </div>
     </article>
   `,
 })
 export class ReviewCardComponent {
+  private readonly auth = inject(AuthService);
+  private readonly reviewService = inject(ReviewService);
   readonly i18n = inject(TranslationService);
 
   readonly review = input.required<Review>();
-  readonly liked = input(false);
-  readonly like = output<string>();
+  // emesso solo quando il server conferma: delta +1 per un like, -1 per un unlike
+  readonly likeChange = output<LikeChange>();
 
   readonly expanded = signal(false);
+  readonly liking = signal(false);
+  readonly liked = computed(() => this.reviewService.hasLiked(this.review().id));
+
+  constructor() {
+    const username = this.auth.getUsername();
+    if (username) this.reviewService.loadLikedReviews(username);
+  }
+
+  onToggleLike(): void {
+    const username = this.auth.getUsername();
+    if (!username || this.liking()) return;
+
+    const reviewId = this.review().id;
+    const wasLiked = this.liked();
+    const request = wasLiked
+      ? this.reviewService.unlikeReview(username, reviewId)
+      : this.reviewService.likeReview(username, reviewId);
+
+    this.liking.set(true);
+    request.subscribe({
+      next: (applied) => {
+        this.liking.set(false);
+        if (applied) {
+          this.likeChange.emit({ reviewId, delta: wasLiked ? -1 : 1 });
+        }
+      },
+      error: () => this.liking.set(false),
+    });
+  }
 
   encodeName(name: string): string {
     return encodeURIComponent(name);
