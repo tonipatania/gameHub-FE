@@ -57,7 +57,9 @@ export class ReviewService {
       })
       .pipe(
         map((result) => result.trim() === 'added like'),
-        tap(() => this.markLiked(reviewId, true)),
+        tap((applied) => {
+          if (applied) this.markLiked(reviewId, true);
+        }),
       );
   }
 
@@ -70,7 +72,9 @@ export class ReviewService {
       })
       .pipe(
         map((result) => result.trim() === 'removed like'),
-        tap(() => this.markLiked(reviewId, false)),
+        tap((applied) => {
+          if (applied) this.markLiked(reviewId, false);
+        }),
       );
   }
 
