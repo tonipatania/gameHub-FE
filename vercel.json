@@ -1,5 +1,8 @@
 {
   "framework": "angular",
   "buildCommand": "npm run build",
-  "outputDirectory": "dist/gameHub-FE"
+  "outputDirectory": "dist/gameHub-FE/browser",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
