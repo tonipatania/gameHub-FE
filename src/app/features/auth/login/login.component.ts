@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -99,9 +100,13 @@ export class LoginComponent {
           this.error.set(response.errorMessage || this.i18n.t('auth.login.invalidCredentials'));
         }
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.loading.set(false);
-        this.error.set(this.i18n.t('auth.login.connectionError'));
+        if (err.status === 401 || err.status === 400) {
+          this.error.set(err.error?.errorMessage || this.i18n.t('auth.login.invalidCredentials'));
+        } else {
+          this.error.set(this.i18n.t('auth.login.connectionError'));
+        }
       },
     });
   }
