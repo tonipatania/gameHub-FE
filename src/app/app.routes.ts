@@ -16,6 +16,15 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
+    // No guard: a confirmation link must work regardless of whether the browser already
+    // has an unrelated session logged in.
+    path: 'confirm-email',
+    loadComponent: () =>
+      import('./features/auth/confirm-email/confirm-email.component').then(
+        (m) => m.ConfirmEmailComponent,
+      ),
+  },
+  {
     path: 'home',
     loadComponent: () =>
       import('./features/home/home.component').then((m) => m.HomeComponent),

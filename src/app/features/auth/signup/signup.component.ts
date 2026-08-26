@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -72,8 +73,30 @@ import { TranslationService } from '../../../core/services/translation.service';
             <input
               formControlName="password"
               type="password"
+              (focus)="passwordFocused.set(true)"
+              (blur)="passwordFocused.set(false)"
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
             />
+            @if (passwordFocused() || passwordValue()) {
+              <ul class="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-xs">
+                <li [class]="passwordRules().minLength ? 'text-emerald-400' : 'text-slate-400'">
+                  <span class="mr-1">{{ passwordRules().minLength ? '✓' : '○' }}</span>
+                  {{ i18n.t('auth.signup.passwordRuleMinLength') }}
+                </li>
+                <li [class]="passwordRules().maxLength ? 'text-emerald-400' : 'text-slate-400'">
+                  <span class="mr-1">{{ passwordRules().maxLength ? '✓' : '○' }}</span>
+                  {{ i18n.t('auth.signup.passwordRuleMaxLength') }}
+                </li>
+                <li [class]="passwordRules().hasUppercase ? 'text-emerald-400' : 'text-slate-400'">
+                  <span class="mr-1">{{ passwordRules().hasUppercase ? '✓' : '○' }}</span>
+                  {{ i18n.t('auth.signup.passwordRuleUppercase') }}
+                </li>
+                <li [class]="passwordRules().hasSpecialChar ? 'text-emerald-400' : 'text-slate-400'">
+                  <span class="mr-1">{{ passwordRules().hasSpecialChar ? '✓' : '○' }}</span>
+                  {{ i18n.t('auth.signup.passwordRuleSpecialChar') }}
+                </li>
+              </ul>
+            }
           </label>
 
           <button
@@ -102,13 +125,36 @@ export class SignupComponent {
   readonly loading = signal(false);
   readonly error = signal('');
   readonly success = signal(false);
+  readonly passwordFocused = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     surname: ['', Validators.required],
     username: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(4)]],
+    password: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(8),
+        Validators.maxLength(32),
+        Validators.pattern(/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).+$/),
+      ],
+    ],
+  });
+
+  readonly passwordValue = toSignal(this.form.controls.password.valueChanges, {
+    initialValue: '',
+  });
+
+  readonly passwordRules = computed(() => {
+    const value = this.passwordValue();
+    return {
+      minLength: value.length >= 8,
+      maxLength: value.length <= 32,
+      hasUppercase: /[A-Z]/.test(value),
+      hasSpecialChar: /[^A-Za-z0-9]/.test(value),
+    };
   });
 
   onSubmit(): void {

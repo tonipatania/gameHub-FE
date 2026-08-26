@@ -50,6 +50,7 @@ import { TranslationService } from '../../../core/services/translation.service';
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white outline-none focus:border-violet-500"
               placeholder="••••••••"
             />
+            <span class="mt-1 block text-xs text-slate-500">{{ i18n.t('auth.login.passwordHint') }}</span>
           </label>
 
           <button
@@ -82,7 +83,7 @@ export class LoginComponent {
 
   readonly form = this.fb.nonNullable.group({
     username: ['', Validators.required],
-    password: ['', Validators.required],
+    password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(32)]],
   });
 
   onSubmit(): void {
@@ -103,7 +104,13 @@ export class LoginComponent {
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         if (err.status === 401 || err.status === 400) {
-          this.error.set(err.error?.errorMessage || this.i18n.t('auth.login.invalidCredentials'));
+          // 401 (credenziali errate) torna un AuthResponse JSON con errorMessage; 400 (validazione
+          // fallita, es. password troppo lunga) torna invece un body testuale semplice.
+          this.error.set(
+            typeof err.error === 'string'
+              ? err.error
+              : err.error?.errorMessage || this.i18n.t('auth.login.invalidCredentials'),
+          );
         } else {
           this.error.set(this.i18n.t('auth.login.connectionError'));
         }

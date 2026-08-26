@@ -39,6 +39,13 @@ export class AuthService {
     });
   }
 
+  confirmEmail(token: string): Observable<string> {
+    return this.http.get(`${environment.apiUrl}/confirm-email`, {
+      params: { token },
+      responseType: 'text',
+    });
+  }
+
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.removeItem(STORAGE_KEY);
