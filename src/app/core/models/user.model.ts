@@ -27,7 +27,8 @@ export interface RegistrationRequest {
 
 export interface AuthResponse {
   success: boolean;
-  errorMessage: string;
+  errorMessage: string | null;
+  errorCode: string | null;
   username: string | null;
   token: string | null;
   role: string | null;

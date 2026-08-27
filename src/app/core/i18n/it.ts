@@ -23,6 +23,9 @@ export const it: Record<string, string> = {
   'auth.login.noAccount': 'Non hai un account?',
   'auth.login.signupLink': 'Registrati',
   'auth.login.invalidCredentials': 'Credenziali non valide',
+  'auth.login.emailNotConfirmed':
+    'Account non confermato: controlla la tua email per completare la registrazione',
+  'auth.login.authError': "Si è verificato un errore durante l'autenticazione",
   'auth.login.connectionError': 'Errore di connessione al server',
 
   'auth.signup.heading': 'Unisciti a',

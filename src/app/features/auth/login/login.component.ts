@@ -98,23 +98,37 @@ export class LoginComponent {
         if (response.success) {
           this.router.navigate(['/home']);
         } else {
-          this.error.set(response.errorMessage || this.i18n.t('auth.login.invalidCredentials'));
+          this.error.set(this.translateAuthError(response.errorCode));
         }
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
-        if (err.status === 401 || err.status === 400) {
-          // 401 (credenziali errate) torna un AuthResponse JSON con errorMessage; 400 (validazione
-          // fallita, es. password troppo lunga) torna invece un body testuale semplice.
+        if (err.status === 401) {
+          // Credenziali errate o account non confermato: torna un AuthResponse JSON con
+          // errorCode, tradotto lato client cosi' il messaggio segue la lingua dell'interfaccia
+          // invece di quella hardcoded nel backend.
+          this.error.set(this.translateAuthError(err.error?.errorCode));
+        } else if (err.status === 400) {
+          // Validazione fallita (es. password troppo lunga): il backend risponde gia' in
+          // italiano con un body testuale semplice.
           this.error.set(
-            typeof err.error === 'string'
-              ? err.error
-              : err.error?.errorMessage || this.i18n.t('auth.login.invalidCredentials'),
+            typeof err.error === 'string' ? err.error : this.i18n.t('auth.login.invalidCredentials'),
           );
         } else {
           this.error.set(this.i18n.t('auth.login.connectionError'));
         }
       },
     });
+  }
+
+  private translateAuthError(errorCode: string | null | undefined): string {
+    switch (errorCode) {
+      case 'EMAIL_NOT_CONFIRMED':
+        return this.i18n.t('auth.login.emailNotConfirmed');
+      case 'AUTH_ERROR':
+        return this.i18n.t('auth.login.authError');
+      default:
+        return this.i18n.t('auth.login.invalidCredentials');
+    }
   }
 }

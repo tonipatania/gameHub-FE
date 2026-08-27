@@ -23,6 +23,9 @@ export const en: Record<string, string> = {
   'auth.login.noAccount': "Don't have an account?",
   'auth.login.signupLink': 'Sign up',
   'auth.login.invalidCredentials': 'Invalid username or password',
+  'auth.login.emailNotConfirmed':
+    'Account not confirmed: check your email to complete registration',
+  'auth.login.authError': 'An error occurred while authenticating',
   'auth.login.connectionError': 'Error connecting to the server',
 
   'auth.signup.heading': 'Join',
