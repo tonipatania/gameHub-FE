@@ -40,6 +40,8 @@ export const it: Record<string, string> = {
   'auth.signup.passwordRuleMaxLength': 'Massimo 32 caratteri',
   'auth.signup.passwordRuleUppercase': 'Una lettera maiuscola',
   'auth.signup.passwordRuleSpecialChar': 'Un carattere speciale',
+  'auth.signup.confirmPasswordLabel': 'Conferma password',
+  'auth.signup.passwordMismatchError': 'Le password non coincidono',
   'auth.signup.submitLoading': 'Registrazione...',
   'auth.signup.submit': 'Crea account',
   'auth.signup.haveAccount': 'Hai già un account?',

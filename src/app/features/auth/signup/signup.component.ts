@@ -1,9 +1,21 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslationService } from '../../../core/services/translation.service';
+
+function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
+  const password = group.get('password')?.value;
+  const confirmPassword = group.get('confirmPassword')?.value;
+  return password === confirmPassword ? null : { passwordMismatch: true };
+}
 
 @Component({
   selector: 'app-signup',
@@ -68,11 +80,12 @@ import { TranslationService } from '../../../core/services/translation.service';
             />
           </label>
 
-          <label class="mb-6 block">
+          <label class="mb-4 block">
             <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.passwordLabel') }}</span>
             <input
               formControlName="password"
               type="password"
+              maxlength="32"
               (focus)="passwordFocused.set(true)"
               (blur)="passwordFocused.set(false)"
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
@@ -96,6 +109,20 @@ import { TranslationService } from '../../../core/services/translation.service';
                   {{ i18n.t('auth.signup.passwordRuleSpecialChar') }}
                 </li>
               </ul>
+            }
+          </label>
+
+          <label class="mb-6 block">
+            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.confirmPasswordLabel') }}</span>
+            <input
+              formControlName="confirmPassword"
+              type="password"
+              maxlength="32"
+              (blur)="confirmPasswordTouched.set(true)"
+              class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
+            />
+            @if (confirmPasswordTouched() && form.errors?.['passwordMismatch']) {
+              <p class="mt-1 text-xs text-rose-400">{{ i18n.t('auth.signup.passwordMismatchError') }}</p>
             }
           </label>
 
@@ -126,22 +153,27 @@ export class SignupComponent {
   readonly error = signal('');
   readonly success = signal(false);
   readonly passwordFocused = signal(false);
+  readonly confirmPasswordTouched = signal(false);
 
-  readonly form = this.fb.nonNullable.group({
-    name: ['', Validators.required],
-    surname: ['', Validators.required],
-    username: ['', Validators.required],
-    email: ['', [Validators.required, Validators.email]],
-    password: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(8),
-        Validators.maxLength(32),
-        Validators.pattern(/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).+$/),
+  readonly form = this.fb.nonNullable.group(
+    {
+      name: ['', Validators.required],
+      surname: ['', Validators.required],
+      username: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(32),
+          Validators.pattern(/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).+$/),
+        ],
       ],
-    ],
-  });
+      confirmPassword: ['', Validators.required],
+    },
+    { validators: passwordsMatchValidator },
+  );
 
   readonly passwordValue = toSignal(this.form.controls.password.valueChanges, {
     initialValue: '',
@@ -163,7 +195,9 @@ export class SignupComponent {
     this.loading.set(true);
     this.error.set('');
 
-    this.auth.signup(this.form.getRawValue()).subscribe({
+    const { confirmPassword, ...registration } = this.form.getRawValue();
+
+    this.auth.signup(registration).subscribe({
       next: () => {
         this.loading.set(false);
         this.success.set(true);
