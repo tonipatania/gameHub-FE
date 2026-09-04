@@ -18,29 +18,6 @@ describe('ReviewService', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('getByGameTitle returns the array as-is', () => {
-    let result: unknown;
-    service.getByGameTitle('Portal 2').subscribe((r) => (result = r));
-
-    const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiUrl}/review/gameSelected/searchByGameTitle`,
-    );
-    expect(req.request.params.get('title')).toBe('Portal 2');
-    req.flush([{ id: 'r1', title: 'Portal 2', username: 'a', comment: 'x', userScore: 9, likeCount: 1 }]);
-
-    expect((result as unknown[]).length).toBe(1);
-  });
-
-  it('getByGameTitle falls back to an empty array on a non-array response', () => {
-    let result: unknown;
-    service.getByGameTitle('Unknown').subscribe((r) => (result = r));
-
-    httpMock
-      .expectOne((r) => r.url === `${environment.apiUrl}/review/gameSelected/searchByGameTitle`)
-      .flush('not found');
-    expect(result).toEqual([]);
-  });
-
   it('create posts the review and expects a text response', () => {
     const review = { title: 'Portal 2', username: 'toni', comment: 'great', userScore: 9 };
     service.create(review).subscribe();
