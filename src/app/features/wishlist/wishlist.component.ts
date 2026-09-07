@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { GameService } from '../../core/services/game.service';
 import { UserService } from '../../core/services/user.service';
 import { Game } from '../../core/models/game.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
@@ -109,17 +110,47 @@ type SortKey = 'name' | 'price' | 'release';
           }
         </div>
       }
+
+      <section class="mt-10">
+        <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('wishlist.suggestedTitle') }}</h2>
+        @if (suggestionsLoading()) {
+          <app-loading-spinner />
+        } @else if (visibleSuggestions().length === 0) {
+          <p class="text-sm text-slate-500">{{ i18n.t('wishlist.noSuggestions') }}</p>
+        } @else {
+          <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            @for (game of visibleSuggestions(); track game.id) {
+              <app-game-card
+                [game]="game"
+                [showWishlistButton]="true"
+                [inWishlist]="false"
+                [showPrice]="true"
+                (wishlistToggle)="addSuggested($event)"
+              />
+            }
+          </div>
+        }
+      </section>
     </main>
   `,
 })
 export class WishlistComponent implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly gameService = inject(GameService);
   private readonly userService = inject(UserService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
   readonly games = signal<Game[]>([]);
   readonly sortBy = signal<SortKey>('name');
+
+  readonly suggestionsLoading = signal(true);
+  readonly suggestedGames = signal<Game[]>([]);
+
+  readonly visibleSuggestions = computed(() => {
+    const owned = new Set(this.games().map((g) => g.name));
+    return this.suggestedGames().filter((g) => !owned.has(g.name));
+  });
 
   // niente ordinamento per voto: avgScore vale 0 su oltre il 99% del catalogo, quindi sarebbe
   // un pulsante che non cambia nulla
@@ -189,6 +220,14 @@ export class WishlistComponent implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+
+    this.gameService.suggestGames(username).subscribe({
+      next: (games) => {
+        this.suggestedGames.set(games);
+        this.suggestionsLoading.set(false);
+      },
+      error: () => this.suggestionsLoading.set(false),
+    });
   }
 
   remove(gameName: string): void {
@@ -197,6 +236,18 @@ export class WishlistComponent implements OnInit {
 
     this.userService.removeFromWishlist(username, gameName).subscribe({
       next: () => this.games.update((list) => list.filter((g) => g.name !== gameName)),
+    });
+  }
+
+  addSuggested(gameName: string): void {
+    const username = this.auth.getUsername();
+    if (!username) return;
+
+    this.userService.addToWishlist(username, gameName).subscribe({
+      next: () => {
+        const added = this.suggestedGames().find((g) => g.name === gameName);
+        if (added) this.games.update((list) => [...list, added]);
+      },
     });
   }
 }

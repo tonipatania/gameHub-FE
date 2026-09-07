@@ -44,11 +44,17 @@ describe('FriendsComponent', () => {
     return fixture;
   }
 
-  function flushInitialLoad(followed: { id: string; username: string }[] = []) {
+  function flushInitialLoad(
+    followed: { id: string; username: string }[] = [],
+    suggested: { id: string; username: string }[] = [],
+  ) {
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush(followed);
     httpMock
       .expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser/page`)
       .flush(followedPage({ content: followed }));
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/SuggestFriends`)
+      .flush(suggested);
   }
 
   it('does nothing when logged out', () => {
@@ -137,6 +143,7 @@ describe('FriendsComponent', () => {
     httpMock
       .expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser/page`)
       .flush(followedPage({ content: [{ id: 'u1', username: 'a' }], totalPages: 2, number: 0 }));
+    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/SuggestFriends`).flush([]);
 
     fixture.componentInstance.prevFollowingPage();
     httpMock.expectNone((r) => r.url === `${environment.apiUrl}/user/followedUser/page`);
@@ -147,5 +154,15 @@ describe('FriendsComponent', () => {
       .flush(followedPage({ content: [{ id: 'u2', username: 'b' }], totalPages: 2, number: 1 }));
 
     expect(fixture.componentInstance.followingPageIndex()).toBe(1);
+  });
+
+  it('loads suggested friends on init', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = create();
+    flushInitialLoad([], [{ id: 'u9', username: 'suggested1' }]);
+
+    const c = fixture.componentInstance;
+    expect(c.suggestionsLoading()).toBe(false);
+    expect(c.suggestedFriends().map((u) => u.username)).toEqual(['suggested1']);
   });
 });

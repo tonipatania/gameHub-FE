@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ActivityItem } from '../models/activity.model';
 import { Game, GameNeo4j, Page } from '../models/game.model';
 import { SuggestedUser, UserNeo4j } from '../models/user.model';
 
@@ -112,6 +113,16 @@ export class UserService {
     return this.http
       .get<UserNeo4j[] | string>(`${environment.apiUrl}/user/search`, { params })
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
+  }
+
+  getFriendsActivity(username: string, page = 0, size = 15): Observable<Page<ActivityItem>> {
+    const params = new HttpParams()
+      .set('username', username)
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get<Page<ActivityItem>>(`${environment.apiUrl}/user/activity/friends`, {
+      params,
+    });
   }
 
   getSuggestedFriends(username: string): Observable<SuggestedUser[]> {

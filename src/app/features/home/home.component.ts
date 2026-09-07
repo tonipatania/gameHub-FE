@@ -1,25 +1,26 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { forkJoin } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
 import { UserService } from '../../core/services/user.service';
+import { ActivityItem } from '../../core/models/activity.model';
 import { Game } from '../../core/models/game.model';
-import { Review } from '../../core/models/review.model';
-import { SuggestedUser } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
-import { LikeChange, ReviewCardComponent } from '../../shared/components/review-card/review-card.component';
-import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
+import { ActivityCardComponent } from '../../shared/components/activity-card/activity-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../core/services/translation.service';
+
+interface RankedGame {
+  game: Game;
+  badge: string;
+}
 
 @Component({
   selector: 'app-home',
   imports: [
     NavbarComponent,
     GameCardComponent,
-    ReviewCardComponent,
-    UserCardComponent,
+    ActivityCardComponent,
     LoadingSpinnerComponent,
   ],
   template: `
@@ -37,63 +38,46 @@ import { TranslationService } from '../../core/services/translation.service';
       <div class="grid gap-8 lg:grid-cols-3">
         <div class="space-y-8 lg:col-span-2">
           <section>
-            <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('home.reviewFeedTitle') }}</h2>
-            @if (reviewsLoading()) {
+            <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('home.topRankedTitle') }}</h2>
+            @if (rankingLoading()) {
               <app-loading-spinner />
-            } @else if (reviews().length === 0) {
+            } @else if (topRankedGames().length === 0) {
               <p class="rounded-xl border border-slate-800 bg-slate-900/50 p-6 text-slate-400">
-                {{ i18n.t('home.noReviews') }}
+                {{ i18n.t('home.noRankedGames') }}
               </p>
             } @else {
-              <div class="space-y-4">
-                @for (review of reviews(); track review.id) {
-                  <app-review-card
-                    [review]="review"
-                    (likeChange)="onLikeChange($event)"
-                  />
+              <div class="grid gap-5 sm:grid-cols-2">
+                @for (item of topRankedGames(); track item.game.id) {
+                  <app-game-card [game]="item.game" [badge]="item.badge" />
                 }
               </div>
             }
           </section>
         </div>
 
-        <aside class="space-y-8">
-          <section>
-            <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('home.suggestedGamesTitle') }}</h2>
-            @if (gamesLoading()) {
-              <app-loading-spinner />
-            } @else if (suggestedGames().length === 0) {
-              <p class="text-sm text-slate-500">
-                {{ i18n.t('home.noSuggestedGames') }}
-              </p>
-            } @else {
-              <div class="space-y-3">
-                @for (game of suggestedGames(); track game.id) {
-                  <app-game-card [game]="game" [compact]="true" />
-                }
-              </div>
+        <aside>
+          <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('activityFeed.title') }}</h2>
+          @if (activityLoading()) {
+            <app-loading-spinner />
+          } @else if (activities().length === 0) {
+            <p class="text-sm text-slate-500">{{ i18n.t('activityFeed.empty') }}</p>
+          } @else {
+            <div class="space-y-3">
+              @for (activity of activities(); track activity.createdAt + activity.username + activity.gameName) {
+                <app-activity-card [activity]="activity" />
+              }
+            </div>
+            @if (activityHasMore()) {
+              <button
+                type="button"
+                (click)="loadMoreActivity()"
+                [disabled]="activityLoadingMore()"
+                class="mt-4 w-full rounded-lg border border-slate-700 py-2 text-sm text-slate-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {{ activityLoadingMore() ? i18n.t('activityFeed.loadingMore') : i18n.t('activityFeed.loadMore') }}
+              </button>
             }
-          </section>
-
-          <section>
-            <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('home.suggestedFriendsTitle') }}</h2>
-            @if (friendsLoading()) {
-              <app-loading-spinner />
-            } @else if (suggestedFriends().length === 0) {
-              <p class="text-sm text-slate-500">{{ i18n.t('home.noSuggestedFriends') }}</p>
-            } @else {
-              <div class="space-y-3">
-                @for (user of suggestedFriends(); track user.id) {
-                  <app-user-card
-                    [user]="user"
-                    [showFollowButton]="true"
-                    [isFollowing]="isFollowing(user.username)"
-                    (followToggle)="onFollow($event)"
-                  />
-                }
-              </div>
-            }
-          </section>
+          }
         </aside>
       </div>
     </main>
@@ -107,16 +91,16 @@ export class HomeComponent implements OnInit {
 
   // Ogni sezione ha il proprio stato di loading e la propria richiesta indipendente: cosi' la
   // Home si popola sezione per sezione invece di restare bloccata su uno spinner unico finche'
-  // anche la piu' lenta (i suggerimenti amici, che interrogano il grafo Neo4j) non risponde.
-  readonly reviewsLoading = signal(true);
-  readonly gamesLoading = signal(true);
-  readonly friendsLoading = signal(true);
+  // anche la piu' lenta non risponde.
+  readonly rankingLoading = signal(true);
+  readonly activityLoading = signal(true);
+  readonly activityLoadingMore = signal(false);
 
   readonly username = signal('');
-  readonly reviews = signal<Review[]>([]);
-  readonly suggestedGames = signal<Game[]>([]);
-  readonly suggestedFriends = signal<SuggestedUser[]>([]);
-  readonly followedUsernames = signal<Set<string>>(new Set());
+  readonly topRankedGames = signal<RankedGame[]>([]);
+  readonly activities = signal<ActivityItem[]>([]);
+  readonly activityPage = signal(0);
+  readonly activityHasMore = signal(false);
 
   ngOnInit(): void {
     const user = this.auth.getUsername();
@@ -124,64 +108,51 @@ export class HomeComponent implements OnInit {
 
     this.username.set(user);
 
-    this.gameService.getGamesWithReviews(20).subscribe({
-      next: (gamesWithReviews) => {
-        const reviews = gamesWithReviews
-          .flatMap((g) => g.reviews ?? [])
-          .filter((r) => r.id)
-          .sort((a, b) => b.likeCount - a.likeCount)
-          .slice(0, 15);
-        this.reviews.set(reviews);
-        this.reviewsLoading.set(false);
-      },
-      error: () => this.reviewsLoading.set(false),
-    });
-
-    this.gameService.suggestGames(user).subscribe({
+    this.gameService.getGamesWithReviews(50).subscribe({
       next: (games) => {
-        this.suggestedGames.set(games);
-        this.gamesLoading.set(false);
+        const ranked = games
+          .filter((g) => (g.reviews?.length ?? 0) > 0)
+          .map((g) => {
+            const scores = g.reviews!.map((r) => r.userScore);
+            const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+            return { game: g, score: Math.round(avg * 10) / 10 };
+          })
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 10)
+          .map((item, index) => ({
+            game: item.game,
+            badge: `#${index + 1} · ${item.score}/10`,
+          }));
+        this.topRankedGames.set(ranked);
+        this.rankingLoading.set(false);
       },
-      error: () => this.gamesLoading.set(false),
+      error: () => this.rankingLoading.set(false),
     });
 
-    // suggestedFriends e followed restano uniti: la card dei suggerimenti deve gia' sapere chi e'
-    // seguito al primo render, per mostrare subito lo stato corretto del pulsante Segui.
-    forkJoin({
-      suggestedFriends: this.userService.getSuggestedFriends(user),
-      followed: this.userService.getFollowedUsers(user),
-    }).subscribe({
-      next: ({ suggestedFriends, followed }) => {
-        this.suggestedFriends.set(suggestedFriends);
-        this.followedUsernames.set(new Set(followed.map((u) => u.username)));
-        this.friendsLoading.set(false);
+    this.userService.getFriendsActivity(user, 0).subscribe({
+      next: (page) => {
+        this.activities.set(page.content);
+        this.activityHasMore.set(!page.last);
+        this.activityLoading.set(false);
       },
-      error: () => this.friendsLoading.set(false),
-    });
-  }
-
-  isFollowing(username: string): boolean {
-    return this.followedUsernames().has(username);
-  }
-
-  onFollow(username: string): void {
-    const current = this.auth.getUsername();
-    if (!current || this.isFollowing(username)) return;
-
-    this.userService.followUser(current, username).subscribe({
-      next: () => {
-        const updated = new Set(this.followedUsernames());
-        updated.add(username);
-        this.followedUsernames.set(updated);
-      },
+      error: () => this.activityLoading.set(false),
     });
   }
 
-  onLikeChange({ reviewId, delta }: LikeChange): void {
-    this.reviews.update((list) =>
-      list.map((r) =>
-        r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r,
-      ),
-    );
+  loadMoreActivity(): void {
+    const user = this.auth.getUsername();
+    if (!user || this.activityLoadingMore()) return;
+
+    this.activityLoadingMore.set(true);
+    const nextPage = this.activityPage() + 1;
+    this.userService.getFriendsActivity(user, nextPage).subscribe({
+      next: (page) => {
+        this.activities.update((list) => [...list, ...page.content]);
+        this.activityPage.set(nextPage);
+        this.activityHasMore.set(!page.last);
+        this.activityLoadingMore.set(false);
+      },
+      error: () => this.activityLoadingMore.set(false),
+    });
   }
 }

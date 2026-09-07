@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
-import { UserNeo4j } from '../../core/models/user.model';
+import { SuggestedUser, UserNeo4j } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -41,6 +41,26 @@ import { TranslationService } from '../../core/services/translation.service';
               }
             </div>
           }
+        }
+      </section>
+
+      <section class="mb-10">
+        <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.suggestedTitle') }}</h2>
+        @if (suggestionsLoading()) {
+          <app-loading-spinner />
+        } @else if (suggestedFriends().length === 0) {
+          <p class="text-slate-400">{{ i18n.t('friends.noSuggestions') }}</p>
+        } @else {
+          <div class="space-y-3">
+            @for (user of suggestedFriends(); track user.id) {
+              <app-user-card
+                [user]="user"
+                [showFollowButton]="true"
+                [isFollowing]="isFollowing(user.username)"
+                (followToggle)="isFollowing(user.username) ? unfollow($event) : follow($event)"
+              />
+            }
+          </div>
         }
       </section>
 
@@ -112,6 +132,8 @@ export class FriendsComponent implements OnInit {
   readonly followingTotalPages = signal(1);
   readonly searchResults = signal<UserNeo4j[]>([]);
   readonly searching = signal(false);
+  readonly suggestedFriends = signal<SuggestedUser[]>([]);
+  readonly suggestionsLoading = signal(true);
 
   readonly searchControl = this.fb.nonNullable.control('');
 
@@ -124,6 +146,14 @@ export class FriendsComponent implements OnInit {
     });
 
     this.loadFollowingPage(0);
+
+    this.userService.getSuggestedFriends(username).subscribe({
+      next: (list) => {
+        this.suggestedFriends.set(list);
+        this.suggestionsLoading.set(false);
+      },
+      error: () => this.suggestionsLoading.set(false),
+    });
 
     this.searchControl.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
