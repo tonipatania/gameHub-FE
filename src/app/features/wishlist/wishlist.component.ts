@@ -27,10 +27,14 @@ type SortKey = 'name' | 'price' | 'release';
               @if (games().length === 0) {
                 {{ i18n.t('wishlist.subtitleEmpty') }}
               } @else {
-                {{ i18n.t(
-                  games().length === 1 ? 'wishlist.subtitleCountSingular' : 'wishlist.subtitleCountPlural',
-                  { count: games().length }
-                ) }}
+                {{
+                  i18n.t(
+                    games().length === 1
+                      ? 'wishlist.subtitleCountSingular'
+                      : 'wishlist.subtitleCountPlural',
+                    { count: games().length }
+                  )
+                }}
               }
             </p>
           </div>
@@ -40,19 +44,27 @@ type SortKey = 'name' | 'price' | 'release';
         @if (games().length > 0) {
           <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsGames') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsGames') }}
+              </dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ games().length }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsValue') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsValue') }}
+              </dt>
               <dd class="mt-1 text-2xl font-bold text-emerald-400">{{ totalPrice() }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsGenres') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsGenres') }}
+              </dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ genreCount() }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsTopGenre') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsTopGenre') }}
+              </dt>
               <dd class="mt-1 truncate text-2xl font-bold text-violet-300" [title]="topGenre()">
                 {{ topGenre() }}
               </dd>
@@ -112,7 +124,9 @@ type SortKey = 'name' | 'price' | 'release';
       }
 
       <section class="mt-10">
-        <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('wishlist.suggestedTitle') }}</h2>
+        <h2 class="mb-4 text-lg font-semibold text-white">
+          {{ i18n.t('wishlist.suggestedTitle') }}
+        </h2>
         @if (suggestionsLoading()) {
           <app-loading-spinner />
         } @else if (visibleSuggestions().length === 0) {

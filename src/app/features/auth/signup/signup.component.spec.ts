@@ -37,8 +37,9 @@ describe('SignupComponent', () => {
     surname: 'B',
     username: 'ab',
     email: 'a@b.com',
-    password: 'pass',
+    password: 'Password!',
   };
+  const validFormValue = { ...validPayload, confirmPassword: 'Password!' };
 
   it('should create with an invalid empty form', () => {
     const fixture = create();
@@ -53,13 +54,18 @@ describe('SignupComponent', () => {
 
   it('rejects an invalid email and a too-short password', () => {
     const fixture = create();
-    fixture.componentInstance.form.setValue({ ...validPayload, email: 'not-an-email', password: 'ab' });
+    fixture.componentInstance.form.setValue({
+      ...validPayload,
+      email: 'not-an-email',
+      password: 'ab',
+      confirmPassword: 'ab',
+    });
     expect(fixture.componentInstance.form.invalid).toBe(true);
   });
 
   it('shows a success message and navigates to /login after a delay on success', () => {
     const fixture = create();
-    fixture.componentInstance.form.setValue(validPayload);
+    fixture.componentInstance.form.setValue(validFormValue);
 
     fixture.componentInstance.onSubmit();
 
@@ -77,7 +83,7 @@ describe('SignupComponent', () => {
 
   it('shows the raw server error message when the backend returns text', () => {
     const fixture = create();
-    fixture.componentInstance.form.setValue(validPayload);
+    fixture.componentInstance.form.setValue(validFormValue);
 
     fixture.componentInstance.onSubmit();
 

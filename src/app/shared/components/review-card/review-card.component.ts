@@ -35,7 +35,9 @@ export interface LikeChange {
           <p
             class="mt-3 text-slate-300 leading-relaxed"
             [class.line-clamp-3]="!expanded() && isLong()"
-          >{{ review().comment }}</p>
+          >
+            {{ review().comment }}
+          </p>
           @if (isLong()) {
             <button
               type="button"
@@ -47,9 +49,7 @@ export interface LikeChange {
             </button>
           }
         </div>
-        <div
-          class="flex shrink-0 flex-col items-center rounded-lg bg-slate-800 px-3 py-2"
-        >
+        <div class="flex shrink-0 flex-col items-center rounded-lg bg-slate-800 px-3 py-2">
           <span class="text-lg font-bold text-emerald-400">{{ review().userScore }}</span>
           <span class="text-xs text-slate-500">/10</span>
         </div>
@@ -64,10 +64,9 @@ export interface LikeChange {
           class="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition hover:bg-slate-800 disabled:opacity-60"
           [class]="liked() ? 'text-rose-400' : 'text-slate-400 hover:text-rose-400'"
         >
-          <span
-            class="transition-transform duration-200"
-            [class.scale-125]="liked()"
-          >{{ liked() ? '♥' : '♡' }}</span>
+          <span class="transition-transform duration-200" [class.scale-125]="liked()">{{
+            liked() ? '♥' : '♡'
+          }}</span>
           {{ review().likeCount }} {{ i18n.t('reviewCard.likeSuffix') }}
         </button>
       </div>

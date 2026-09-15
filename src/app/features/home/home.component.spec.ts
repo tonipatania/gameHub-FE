@@ -59,15 +59,36 @@ describe('HomeComponent', () => {
           id: 'g1',
           name: 'Portal 2',
           reviews: [
-            { id: 'r1', title: 'Portal 2', username: 'a', comment: 'great', userScore: 9, likeCount: 3 },
-            { id: 'r2', title: 'Portal 2', username: 'b', comment: 'meh', userScore: 5, likeCount: 9 },
+            {
+              id: 'r1',
+              title: 'Portal 2',
+              username: 'a',
+              comment: 'great',
+              userScore: 9,
+              likeCount: 3,
+            },
+            {
+              id: 'r2',
+              title: 'Portal 2',
+              username: 'b',
+              comment: 'meh',
+              userScore: 5,
+              likeCount: 9,
+            },
           ],
         },
         {
           id: 'g2',
           name: 'Half-Life',
           reviews: [
-            { id: 'r3', title: 'Half-Life', username: 'c', comment: 'amazing', userScore: 10, likeCount: 1 },
+            {
+              id: 'r3',
+              title: 'Half-Life',
+              username: 'c',
+              comment: 'amazing',
+              userScore: 10,
+              likeCount: 1,
+            },
           ],
         },
       ]);
@@ -107,7 +128,15 @@ describe('HomeComponent', () => {
       .expectOne((r) => r.url === `${environment.apiUrl}/user/activity/friends`)
       .flush(
         activityPage(
-          [{ username: 'friend1', type: 'REVIEW', gameName: 'Portal 2', score: 8, createdAt: new Date().toISOString() }],
+          [
+            {
+              username: 'friend1',
+              type: 'REVIEW',
+              gameName: 'Portal 2',
+              score: 8,
+              createdAt: new Date().toISOString(),
+            },
+          ],
           { number: 0, last: false },
         ),
       );
@@ -121,7 +150,14 @@ describe('HomeComponent', () => {
     expect(req.request.params.get('page')).toBe('1');
     req.flush(
       activityPage(
-        [{ username: 'friend2', type: 'WISHLIST_ADD', gameName: 'Celeste', createdAt: new Date().toISOString() }],
+        [
+          {
+            username: 'friend2',
+            type: 'WISHLIST_ADD',
+            gameName: 'Celeste',
+            createdAt: new Date().toISOString(),
+          },
+        ],
         { number: 1, last: true },
       ),
     );

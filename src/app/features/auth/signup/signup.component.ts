@@ -48,14 +48,18 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
 
           <div class="mb-4 grid grid-cols-2 gap-3">
             <label>
-              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.nameLabel') }}</span>
+              <span class="mb-1 block text-sm text-slate-400">{{
+                i18n.t('auth.signup.nameLabel')
+              }}</span>
               <input
                 formControlName="name"
                 class="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none focus:border-violet-500"
               />
             </label>
             <label>
-              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.surnameLabel') }}</span>
+              <span class="mb-1 block text-sm text-slate-400">{{
+                i18n.t('auth.signup.surnameLabel')
+              }}</span>
               <input
                 formControlName="surname"
                 class="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white outline-none focus:border-violet-500"
@@ -64,7 +68,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
           </div>
 
           <label class="mb-4 block">
-            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.usernameLabel') }}</span>
+            <span class="mb-1 block text-sm text-slate-400">{{
+              i18n.t('auth.signup.usernameLabel')
+            }}</span>
             <input
               formControlName="username"
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
@@ -72,7 +78,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
           </label>
 
           <label class="mb-4 block">
-            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.emailLabel') }}</span>
+            <span class="mb-1 block text-sm text-slate-400">{{
+              i18n.t('auth.signup.emailLabel')
+            }}</span>
             <input
               formControlName="email"
               type="email"
@@ -81,7 +89,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
           </label>
 
           <label class="mb-4 block">
-            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.passwordLabel') }}</span>
+            <span class="mb-1 block text-sm text-slate-400">{{
+              i18n.t('auth.signup.passwordLabel')
+            }}</span>
             <input
               formControlName="password"
               type="password"
@@ -91,7 +101,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
             />
             @if (passwordFocused() || passwordValue()) {
-              <ul class="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-xs">
+              <ul
+                class="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-xs"
+              >
                 <li [class]="passwordRules().minLength ? 'text-emerald-400' : 'text-slate-400'">
                   <span class="mr-1">{{ passwordRules().minLength ? '✓' : '○' }}</span>
                   {{ i18n.t('auth.signup.passwordRuleMinLength') }}
@@ -104,7 +116,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
                   <span class="mr-1">{{ passwordRules().hasUppercase ? '✓' : '○' }}</span>
                   {{ i18n.t('auth.signup.passwordRuleUppercase') }}
                 </li>
-                <li [class]="passwordRules().hasSpecialChar ? 'text-emerald-400' : 'text-slate-400'">
+                <li
+                  [class]="passwordRules().hasSpecialChar ? 'text-emerald-400' : 'text-slate-400'"
+                >
                   <span class="mr-1">{{ passwordRules().hasSpecialChar ? '✓' : '○' }}</span>
                   {{ i18n.t('auth.signup.passwordRuleSpecialChar') }}
                 </li>
@@ -113,7 +127,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
           </label>
 
           <label class="mb-6 block">
-            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.signup.confirmPasswordLabel') }}</span>
+            <span class="mb-1 block text-sm text-slate-400">{{
+              i18n.t('auth.signup.confirmPasswordLabel')
+            }}</span>
             <input
               formControlName="confirmPassword"
               type="password"
@@ -122,7 +138,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
             />
             @if (confirmPasswordTouched() && form.errors?.['passwordMismatch']) {
-              <p class="mt-1 text-xs text-rose-400">{{ i18n.t('auth.signup.passwordMismatchError') }}</p>
+              <p class="mt-1 text-xs text-rose-400">
+                {{ i18n.t('auth.signup.passwordMismatchError') }}
+              </p>
             }
           </label>
 
@@ -136,7 +154,9 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
 
           <p class="mt-6 text-center text-sm text-slate-400">
             {{ i18n.t('auth.signup.haveAccount') }}
-            <a routerLink="/login" class="text-violet-400 hover:text-violet-300">{{ i18n.t('auth.signup.loginLink') }}</a>
+            <a routerLink="/login" class="text-violet-400 hover:text-violet-300">{{
+              i18n.t('auth.signup.loginLink')
+            }}</a>
           </p>
         </form>
       </div>
@@ -206,9 +226,7 @@ export class SignupComponent {
       error: (err) => {
         this.loading.set(false);
         this.error.set(
-          typeof err.error === 'string'
-            ? err.error
-            : this.i18n.t('auth.signup.genericError'),
+          typeof err.error === 'string' ? err.error : this.i18n.t('auth.signup.genericError'),
         );
       },
     });

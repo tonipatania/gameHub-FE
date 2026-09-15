@@ -9,7 +9,10 @@ import { Game } from '../../../core/models/game.model';
 import { Review } from '../../../core/models/review.model';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { BackButtonComponent } from '../../../shared/components/back-button/back-button.component';
-import { LikeChange, ReviewCardComponent } from '../../../shared/components/review-card/review-card.component';
+import {
+  LikeChange,
+  ReviewCardComponent,
+} from '../../../shared/components/review-card/review-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../../core/services/translation.service';
 
@@ -48,7 +51,9 @@ import { TranslationService } from '../../../core/services/translation.service';
               </div>
               <div class="flex items-center gap-3">
                 @if (g.avgScore) {
-                  <span class="rounded-xl bg-emerald-500/20 px-4 py-2 text-lg font-bold text-emerald-400">
+                  <span
+                    class="rounded-xl bg-emerald-500/20 px-4 py-2 text-lg font-bold text-emerald-400"
+                  >
                     {{ g.avgScore }}/10
                   </span>
                 }
@@ -62,7 +67,11 @@ import { TranslationService } from '../../../core/services/translation.service';
                       : 'bg-violet-600 text-white hover:bg-violet-500'
                   "
                 >
-                  {{ inWishlist() ? i18n.t('gameDetail.inWishlist') : i18n.t('gameDetail.addToWishlist') }}
+                  {{
+                    inWishlist()
+                      ? i18n.t('gameDetail.inWishlist')
+                      : i18n.t('gameDetail.addToWishlist')
+                  }}
                 </button>
               </div>
             </div>
@@ -74,25 +83,33 @@ import { TranslationService } from '../../../core/services/translation.service';
             <dl class="mt-6 grid gap-4 sm:grid-cols-2">
               @if (g.developers) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.developers') }}</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">
+                    {{ i18n.t('gameDetail.developers') }}
+                  </dt>
                   <dd class="text-slate-300">{{ g.developers }}</dd>
                 </div>
               }
               @if (g.publishers) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.publisher') }}</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">
+                    {{ i18n.t('gameDetail.publisher') }}
+                  </dt>
                   <dd class="text-slate-300">{{ g.publishers }}</dd>
                 </div>
               }
               @if (g.releaseDate) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.releaseDate') }}</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">
+                    {{ i18n.t('gameDetail.releaseDate') }}
+                  </dt>
                   <dd class="text-slate-300">{{ g.releaseDate }}</dd>
                 </div>
               }
               @if (g.price != null) {
                 <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('gameDetail.price') }}</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">
+                    {{ i18n.t('gameDetail.price') }}
+                  </dt>
                   <dd class="text-slate-300">{{ g.price }} €</dd>
                 </div>
               }
@@ -101,14 +118,18 @@ import { TranslationService } from '../../../core/services/translation.service';
         </div>
 
         <section class="mt-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('gameDetail.writeReviewTitle') }}</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">
+            {{ i18n.t('gameDetail.writeReviewTitle') }}
+          </h2>
           <form
             [formGroup]="reviewForm"
             (ngSubmit)="submitReview()"
             class="rounded-xl border border-slate-800 bg-slate-900/80 p-6"
           >
             <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('gameDetail.commentLabel') }}</span>
+              <span class="mb-1 block text-sm text-slate-400">{{
+                i18n.t('gameDetail.commentLabel')
+              }}</span>
               <textarea
                 formControlName="comment"
                 rows="3"
@@ -116,7 +137,9 @@ import { TranslationService } from '../../../core/services/translation.service';
               ></textarea>
             </label>
             <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('gameDetail.scoreLabel') }}</span>
+              <span class="mb-1 block text-sm text-slate-400">{{
+                i18n.t('gameDetail.scoreLabel')
+              }}</span>
               <input
                 formControlName="userScore"
                 type="number"
@@ -225,9 +248,7 @@ export class GameDetailComponent implements OnInit {
 
   onLikeChange({ reviewId, delta }: LikeChange): void {
     this.reviews.update((list) =>
-      list.map((r) =>
-        r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r,
-      ),
+      list.map((r) => (r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r)),
     );
   }
 
@@ -247,8 +268,7 @@ export class GameDetailComponent implements OnInit {
     const username = this.auth.getUsername();
     if (username) {
       this.userService.getWishlist(username).subscribe({
-        next: (wishlist) =>
-          this.inWishlist.set(wishlist.some((g) => g.name === this.gameName)),
+        next: (wishlist) => this.inWishlist.set(wishlist.some((g) => g.name === this.gameName)),
       });
     }
   }

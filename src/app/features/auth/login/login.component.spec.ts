@@ -91,7 +91,8 @@ describe('LoginComponent', () => {
     req.flush(
       {
         success: false,
-        errorMessage: "Account non confermato: controlla la tua email per completare la registrazione",
+        errorMessage:
+          'Account non confermato: controlla la tua email per completare la registrazione',
         errorCode: 'EMAIL_NOT_CONFIRMED',
         username: null,
         token: null,

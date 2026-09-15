@@ -18,7 +18,9 @@ import { TranslationService } from '../../core/services/translation.service';
       <h1 class="mb-8 text-3xl font-bold text-white">{{ i18n.t('friends.title') }}</h1>
 
       <section class="mb-10">
-        <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.addPeopleTitle') }}</h2>
+        <h2 class="mb-4 text-xl font-semibold text-white">
+          {{ i18n.t('friends.addPeopleTitle') }}
+        </h2>
         <input
           [formControl]="searchControl"
           [placeholder]="i18n.t('friends.searchPlaceholder')"
@@ -45,7 +47,9 @@ import { TranslationService } from '../../core/services/translation.service';
       </section>
 
       <section class="mb-10">
-        <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.suggestedTitle') }}</h2>
+        <h2 class="mb-4 text-xl font-semibold text-white">
+          {{ i18n.t('friends.suggestedTitle') }}
+        </h2>
         @if (suggestionsLoading()) {
           <app-loading-spinner />
         } @else if (suggestedFriends().length === 0) {
@@ -70,7 +74,9 @@ import { TranslationService } from '../../core/services/translation.service';
         <app-loading-spinner />
       } @else {
         <section class="mb-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.followingTitle') }}</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">
+            {{ i18n.t('friends.followingTitle') }}
+          </h2>
           @if (followingPage().length === 0) {
             <p class="text-slate-400">{{ i18n.t('friends.notFollowingAnyone') }}</p>
           } @else {
@@ -99,12 +105,19 @@ import { TranslationService } from '../../core/services/translation.service';
                 {{ i18n.t('common.prev') }}
               </button>
               <span class="text-sm text-slate-400">
-                {{ i18n.t('common.pageOf', { current: followingPageIndex() + 1, total: followingTotalPages() }) }}
+                {{
+                  i18n.t('common.pageOf', {
+                    current: followingPageIndex() + 1,
+                    total: followingTotalPages(),
+                  })
+                }}
               </span>
               <button
                 type="button"
                 (click)="nextFollowingPage()"
-                [disabled]="followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()"
+                [disabled]="
+                  followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()
+                "
                 class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {{ i18n.t('common.next') }}
@@ -182,7 +195,10 @@ export class FriendsComponent implements OnInit {
   prevFollowingPage(): void {
     if (this.followingPageIndex() > 0 && !this.navigatingFollowing()) {
       this.navigatingFollowing.set(true);
-      this.followingTopAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.followingTopAnchor()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
       this.loadFollowingPage(this.followingPageIndex() - 1);
     }
   }
@@ -190,7 +206,10 @@ export class FriendsComponent implements OnInit {
   nextFollowingPage(): void {
     if (this.followingPageIndex() < this.followingTotalPages() - 1 && !this.navigatingFollowing()) {
       this.navigatingFollowing.set(true);
-      this.followingTopAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.followingTopAnchor()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
       this.loadFollowingPage(this.followingPageIndex() + 1);
     }
   }

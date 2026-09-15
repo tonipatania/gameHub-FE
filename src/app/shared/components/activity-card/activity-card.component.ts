@@ -19,7 +19,12 @@ import { TranslationService } from '../../../core/services/translation.service';
           @if (activity().type === 'WISHLIST_ADD') {
             {{ i18n.t('activityFeed.wishlistAdd', { game: activity().gameName }) }}
           } @else {
-            {{ i18n.t('activityFeed.review', { game: activity().gameName, score: activity().score ?? 0 }) }}
+            {{
+              i18n.t('activityFeed.review', {
+                game: activity().gameName,
+                score: activity().score ?? 0,
+              })
+            }}
           }
         </p>
         <p class="mt-1 text-xs text-slate-500">{{ relativeTime() }}</p>
@@ -50,7 +55,10 @@ export class ActivityCardComponent {
   }
 
   relativeTime(): string {
-    const minutes = Math.max(0, Math.floor((Date.now() - Date.parse(this.activity().createdAt)) / 60000));
+    const minutes = Math.max(
+      0,
+      Math.floor((Date.now() - Date.parse(this.activity().createdAt)) / 60000),
+    );
     if (minutes < 1) return this.i18n.t('activityFeed.justNow');
     if (minutes < 60) return this.i18n.t('activityFeed.minutesAgo', { count: minutes });
     const hours = Math.floor(minutes / 60);

@@ -21,23 +21,39 @@ describe('GameService', () => {
   it('getAll sends page/size and an optional sort param', () => {
     service.getAll(2, 10, 'name').subscribe();
 
-    const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiUrl}/game/getAll`,
-    );
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/game/getAll`);
     expect(req.request.params.get('page')).toBe('2');
     expect(req.request.params.get('size')).toBe('10');
     expect(req.request.params.get('sort')).toBe('name');
-    req.flush({ content: [], totalPages: 1, totalElements: 0, size: 10, number: 2, first: false, last: true });
+    req.flush({
+      content: [],
+      totalPages: 1,
+      totalElements: 0,
+      size: 10,
+      number: 2,
+      first: false,
+      last: true,
+    });
   });
 
   it('searchFilter only sets params that are provided', () => {
-    service.searchFilter({ name: 'zelda', genres: ['RPG', 'Action'], avgScore: 8 }, 0, 24).subscribe();
+    service
+      .searchFilter({ name: 'zelda', genres: ['RPG', 'Action'], avgScore: 8 }, 0, 24)
+      .subscribe();
 
     const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/game/searchFilter`);
     expect(req.request.params.get('name')).toBe('zelda');
     expect(req.request.params.getAll('genres')).toEqual(['RPG', 'Action']);
     expect(req.request.params.get('avgScore')).toBe('8');
-    req.flush({ content: [], totalPages: 1, totalElements: 0, size: 24, number: 0, first: true, last: true });
+    req.flush({
+      content: [],
+      totalPages: 1,
+      totalElements: 0,
+      size: 24,
+      number: 0,
+      first: true,
+      last: true,
+    });
   });
 
   it('searchFilter omits genres/avgScore params when absent', () => {
@@ -47,7 +63,15 @@ describe('GameService', () => {
     expect(req.request.params.has('name')).toBe(false);
     expect(req.request.params.has('genres')).toBe(false);
     expect(req.request.params.has('avgScore')).toBe(false);
-    req.flush({ content: [], totalPages: 1, totalElements: 0, size: 24, number: 0, first: true, last: true });
+    req.flush({
+      content: [],
+      totalPages: 1,
+      totalElements: 0,
+      size: 24,
+      number: 0,
+      first: true,
+      last: true,
+    });
   });
 
   it('getGamesWithReviews sends a size param', () => {
@@ -88,9 +112,7 @@ describe('GameService', () => {
     let result: unknown;
     service.suggestGames('toni').subscribe((r) => (result = r));
 
-    httpMock
-      .expectOne(`${environment.apiUrl}/game/suggestGames/toni`)
-      .flush('user not found');
+    httpMock.expectOne(`${environment.apiUrl}/game/suggestGames/toni`).flush('user not found');
     expect(result).toEqual([]);
   });
 });

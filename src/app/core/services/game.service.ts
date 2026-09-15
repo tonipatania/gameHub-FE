@@ -2,20 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  Game,
-  GameSearchFilter,
-  Page,
-} from '../models/game.model';
+import { Game, GameSearchFilter, Page } from '../models/game.model';
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
   private readonly http = inject(HttpClient);
 
   getAll(page = 0, size = 24, sort?: string): Observable<Page<Game>> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (sort) params = params.set('sort', sort);
     return this.http.get<Page<Game>>(`${environment.apiUrl}/game/getAll`, {
       params,
@@ -23,9 +17,7 @@ export class GameService {
   }
 
   searchFilter(filter: GameSearchFilter, page = 0, size = 24): Observable<Page<Game>> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+    let params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     if (filter.name) params = params.set('name', filter.name);
     if (filter.genres?.length) {
       for (const genre of filter.genres) params = params.append('genres', genre);

@@ -5,7 +5,9 @@ import { provideRouter } from '@angular/router';
 import { FriendsComponent } from './friends.component';
 import { environment } from '../../../environments/environment';
 
-const followedPage = (overrides: Partial<{ content: unknown[]; number: number; totalPages: number }> = {}) => ({
+const followedPage = (
+  overrides: Partial<{ content: unknown[]; number: number; totalPages: number }> = {},
+) => ({
   content: overrides.content ?? [],
   totalPages: overrides.totalPages ?? 1,
   totalElements: 0,
@@ -131,7 +133,9 @@ describe('FriendsComponent', () => {
     httpMock
       .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/unfollow`)
       .flush('unfollowed');
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser/page`).flush(followedPage());
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser/page`)
+      .flush(followedPage());
 
     expect(fixture.componentInstance.isFollowing('friend1')).toBe(false);
   });

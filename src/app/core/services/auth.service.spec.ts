@@ -57,7 +57,13 @@ describe('AuthService', () => {
     service.login({ username: 'toni', password: 'wrong' }).subscribe();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/login`);
-    req.flush({ success: false, errorMessage: 'bad creds', username: null, token: null, role: null });
+    req.flush({
+      success: false,
+      errorMessage: 'bad creds',
+      username: null,
+      token: null,
+      role: null,
+    });
 
     expect(service.isLoggedIn()).toBe(false);
     expect(sessionStorage.getItem('gamehub_token')).toBeNull();

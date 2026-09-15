@@ -30,7 +30,7 @@ export const it: Record<string, string> = {
 
   'auth.signup.heading': 'Unisciti a',
   'auth.signup.successMessage':
-    'Registrazione completata! Controlla la tua email per confermare l\'account, poi accedi.',
+    "Registrazione completata! Controlla la tua email per confermare l'account, poi accedi.",
   'auth.signup.nameLabel': 'Nome',
   'auth.signup.surnameLabel': 'Cognome',
   'auth.signup.usernameLabel': 'Username',
@@ -49,7 +49,7 @@ export const it: Record<string, string> = {
   'auth.signup.genericError': 'Errore durante la registrazione',
 
   'auth.confirmEmail.pendingTitle': 'Conferma in corso...',
-  'auth.confirmEmail.pendingSubtitle': "Stiamo confermando il tuo account.",
+  'auth.confirmEmail.pendingSubtitle': 'Stiamo confermando il tuo account.',
   'auth.confirmEmail.successTitle': 'Account confermato!',
   'auth.confirmEmail.successSubtitle': 'Ora puoi accedere al tuo account GameHub.',
   'auth.confirmEmail.errorTitle': 'Conferma non riuscita',
@@ -59,7 +59,8 @@ export const it: Record<string, string> = {
   'home.welcome': 'Bentornato, {name} 👋',
   'home.subtitle': 'Scopri giochi, recensioni e persone in base alle tue interazioni',
   'home.topRankedTitle': 'Giochi più votati',
-  'home.noRankedGames': 'Nessun gioco votato ancora. Esplora i giochi e lascia la prima recensione!',
+  'home.noRankedGames':
+    'Nessun gioco votato ancora. Esplora i giochi e lascia la prima recensione!',
 
   'activityFeed.title': 'Attività degli amici',
   'activityFeed.empty': 'Nessuna attività dalle persone che segui, per ora.',
@@ -111,7 +112,8 @@ export const it: Record<string, string> = {
   'wishlist.sortPrice': 'Prezzo',
   'wishlist.sortRelease': 'Uscita',
   'wishlist.suggestedTitle': 'Consigliati per te',
-  'wishlist.noSuggestions': 'Interagisci con la piattaforma per ricevere suggerimenti personalizzati.',
+  'wishlist.noSuggestions':
+    'Interagisci con la piattaforma per ricevere suggerimenti personalizzati.',
 
   'friends.title': 'Community',
   'friends.addPeopleTitle': 'Aggiungi persone',

@@ -33,7 +33,9 @@ import { TranslationService } from '../../../core/services/translation.service';
           }
 
           <label class="mb-4 block">
-            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.login.usernameLabel') }}</span>
+            <span class="mb-1 block text-sm text-slate-400">{{
+              i18n.t('auth.login.usernameLabel')
+            }}</span>
             <input
               formControlName="username"
               type="text"
@@ -43,14 +45,18 @@ import { TranslationService } from '../../../core/services/translation.service';
           </label>
 
           <label class="mb-6 block">
-            <span class="mb-1 block text-sm text-slate-400">{{ i18n.t('auth.login.passwordLabel') }}</span>
+            <span class="mb-1 block text-sm text-slate-400">{{
+              i18n.t('auth.login.passwordLabel')
+            }}</span>
             <input
               formControlName="password"
               type="password"
               class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white outline-none focus:border-violet-500"
               placeholder="••••••••"
             />
-            <span class="mt-1 block text-xs text-slate-500">{{ i18n.t('auth.login.passwordHint') }}</span>
+            <span class="mt-1 block text-xs text-slate-500">{{
+              i18n.t('auth.login.passwordHint')
+            }}</span>
           </label>
 
           <button
@@ -112,7 +118,9 @@ export class LoginComponent {
           // Validazione fallita (es. password troppo lunga): il backend risponde gia' in
           // italiano con un body testuale semplice.
           this.error.set(
-            typeof err.error === 'string' ? err.error : this.i18n.t('auth.login.invalidCredentials'),
+            typeof err.error === 'string'
+              ? err.error
+              : this.i18n.t('auth.login.invalidCredentials'),
           );
         } else {
           this.error.set(this.i18n.t('auth.login.connectionError'));

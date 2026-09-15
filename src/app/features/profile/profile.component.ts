@@ -46,7 +46,9 @@ type WishlistSortKey = 'name' | 'price' | 'release';
 
         @if (isOwnProfile()) {
           <section class="mb-8 rounded-xl border border-slate-800 bg-slate-900/80 p-6">
-            <h2 class="mb-4 text-lg font-semibold text-white">{{ i18n.t('profile.editUsernameTitle') }}</h2>
+            <h2 class="mb-4 text-lg font-semibold text-white">
+              {{ i18n.t('profile.editUsernameTitle') }}
+            </h2>
             <form [formGroup]="usernameForm" (ngSubmit)="updateUsername()" class="flex gap-3">
               <input
                 formControlName="newUsername"
@@ -81,22 +83,30 @@ type WishlistSortKey = 'name' | 'price' | 'release';
         }
 
         <section>
-          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('profile.wishlistTitle') }}</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">
+            {{ i18n.t('profile.wishlistTitle') }}
+          </h2>
 
           @if (wishlistTotal() > 0) {
             <dl class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('profile.statsGames') }}</dt>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">
+                  {{ i18n.t('profile.statsGames') }}
+                </dt>
                 <dd class="mt-1 text-2xl font-bold text-white">{{ wishlistTotal() }}</dd>
               </div>
               @if (!isOwnProfile()) {
                 <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('profile.statsCommon') }}</dt>
+                  <dt class="text-xs uppercase tracking-wide text-slate-500">
+                    {{ i18n.t('profile.statsCommon') }}
+                  </dt>
                   <dd class="mt-1 text-2xl font-bold text-violet-300">{{ commonCount() }}</dd>
                 </div>
               }
               <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('profile.statsPage') }}</dt>
+                <dt class="text-xs uppercase tracking-wide text-slate-500">
+                  {{ i18n.t('profile.statsPage') }}
+                </dt>
                 <dd class="mt-1 text-2xl font-bold text-white">
                   {{ wishlistPageIndex() + 1 }}/{{ wishlistTotalPages() }}
                 </dd>
@@ -176,7 +186,12 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                   {{ i18n.t('common.prev') }}
                 </button>
                 <span class="text-sm text-slate-400">
-                  {{ i18n.t('profile.pageOfShort', { current: wishlistPageIndex() + 1, total: wishlistTotalPages() }) }}
+                  {{
+                    i18n.t('profile.pageOfShort', {
+                      current: wishlistPageIndex() + 1,
+                      total: wishlistTotalPages(),
+                    })
+                  }}
                 </span>
                 <button
                   type="button"
@@ -380,10 +395,7 @@ export class ProfileComponent implements OnInit {
   }
 
   nextWishlistPage(): void {
-    if (
-      this.wishlistPageIndex() < this.wishlistTotalPages() - 1 &&
-      !this.navigatingWishlist()
-    ) {
+    if (this.wishlistPageIndex() < this.wishlistTotalPages() - 1 && !this.navigatingWishlist()) {
       this.loadWishlistPage(this.wishlistPageIndex() + 1);
     }
   }

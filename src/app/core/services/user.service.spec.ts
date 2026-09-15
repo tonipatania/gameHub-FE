@@ -40,7 +40,9 @@ describe('UserService', () => {
 
   it('getWishlist adds an optional friendUsername param and normalizes non-array responses', () => {
     service.getWishlist('toni', 'friend').subscribe();
-    let req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`);
+    let req = httpMock.expectOne(
+      (r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`,
+    );
     expect(req.request.params.get('username')).toBe('toni');
     expect(req.request.params.get('friendUsername')).toBe('friend');
     req.flush([{ id: 'g1', name: 'Portal' }]);
@@ -65,7 +67,15 @@ describe('UserService', () => {
     expect(req.request.params.get('size')).toBe('12');
     expect(req.request.params.get('sort')).toBe('price');
     expect(req.request.params.get('onlyCommon')).toBe('true');
-    req.flush({ content: [], totalPages: 1, totalElements: 0, size: 12, number: 1, first: false, last: true });
+    req.flush({
+      content: [],
+      totalPages: 1,
+      totalElements: 0,
+      size: 12,
+      number: 1,
+      first: false,
+      last: true,
+    });
   });
 
   it('getCommonWishlistGames normalizes a non-array response to an empty array', () => {
@@ -115,7 +125,15 @@ describe('UserService', () => {
     const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser/page`);
     expect(req.request.params.get('page')).toBe('2');
     expect(req.request.params.get('size')).toBe('5');
-    req.flush({ content: [], totalPages: 1, totalElements: 0, size: 5, number: 2, first: false, last: true });
+    req.flush({
+      content: [],
+      totalPages: 1,
+      totalElements: 0,
+      size: 5,
+      number: 2,
+      first: false,
+      last: true,
+    });
   });
 
   it('searchUsers sends query and username params', () => {
@@ -138,7 +156,9 @@ describe('UserService', () => {
   it('followUser posts follower/followed params', () => {
     service.followUser('toni', 'friend').subscribe();
 
-    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/follow`);
+    const req = httpMock.expectOne(
+      (r) => r.url === `${environment.apiUrl}/user/userSelected/follow`,
+    );
     expect(req.request.params.get('followerUsername')).toBe('toni');
     expect(req.request.params.get('followedUsername')).toBe('friend');
     req.flush('followed');
@@ -147,7 +167,9 @@ describe('UserService', () => {
   it('unfollowUser posts follower/followed params', () => {
     service.unfollowUser('toni', 'friend').subscribe();
 
-    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/unfollow`);
+    const req = httpMock.expectOne(
+      (r) => r.url === `${environment.apiUrl}/user/userSelected/unfollow`,
+    );
     expect(req.request.params.get('followerUsername')).toBe('toni');
     req.flush('unfollowed');
   });

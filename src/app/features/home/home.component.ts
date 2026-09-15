@@ -17,12 +17,7 @@ interface RankedGame {
 
 @Component({
   selector: 'app-home',
-  imports: [
-    NavbarComponent,
-    GameCardComponent,
-    ActivityCardComponent,
-    LoadingSpinnerComponent,
-  ],
+  imports: [NavbarComponent, GameCardComponent, ActivityCardComponent, LoadingSpinnerComponent],
   template: `
     <app-navbar />
     <main class="mx-auto max-w-7xl px-4 py-8">
@@ -38,7 +33,9 @@ interface RankedGame {
       <div class="grid gap-8 lg:grid-cols-3">
         <div class="space-y-8 lg:col-span-2">
           <section>
-            <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('home.topRankedTitle') }}</h2>
+            <h2 class="mb-4 text-xl font-semibold text-white">
+              {{ i18n.t('home.topRankedTitle') }}
+            </h2>
             @if (rankingLoading()) {
               <app-loading-spinner />
             } @else if (topRankedGames().length === 0) {
@@ -63,7 +60,10 @@ interface RankedGame {
             <p class="text-sm text-slate-500">{{ i18n.t('activityFeed.empty') }}</p>
           } @else {
             <div class="space-y-3">
-              @for (activity of activities(); track activity.createdAt + activity.username + activity.gameName) {
+              @for (
+                activity of activities();
+                track activity.createdAt + activity.username + activity.gameName
+              ) {
                 <app-activity-card [activity]="activity" />
               }
             </div>
@@ -74,7 +74,11 @@ interface RankedGame {
                 [disabled]="activityLoadingMore()"
                 class="mt-4 w-full rounded-lg border border-slate-700 py-2 text-sm text-slate-300 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {{ activityLoadingMore() ? i18n.t('activityFeed.loadingMore') : i18n.t('activityFeed.loadMore') }}
+                {{
+                  activityLoadingMore()
+                    ? i18n.t('activityFeed.loadingMore')
+                    : i18n.t('activityFeed.loadMore')
+                }}
               </button>
             }
           }
