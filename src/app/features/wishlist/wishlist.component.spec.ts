@@ -35,8 +35,13 @@ describe('WishlistComponent', () => {
     return fixture;
   }
 
-  function flushWishlist(list: Game[] = games) {
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`).flush(list);
+  function flushWishlist(list: Game[] = games, suggestions: Game[] = []) {
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`)
+      .flush(list);
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/game/suggestGames/toni`)
+      .flush(suggestions);
   }
 
   it('does nothing when logged out', () => {
@@ -58,7 +63,11 @@ describe('WishlistComponent', () => {
     const fixture = create();
     flushWishlist();
 
-    expect(fixture.componentInstance.sortedGames().map((g) => g.name)).toEqual(['Alpha', 'Beta', 'Zelda']);
+    expect(fixture.componentInstance.sortedGames().map((g) => g.name)).toEqual([
+      'Alpha',
+      'Beta',
+      'Zelda',
+    ]);
   });
 
   it('sorts by price ascending, treating a missing/zero price as free', () => {
@@ -67,7 +76,11 @@ describe('WishlistComponent', () => {
     flushWishlist();
 
     fixture.componentInstance.sortBy.set('price');
-    expect(fixture.componentInstance.sortedGames().map((g) => g.name)).toEqual(['Alpha', 'Beta', 'Zelda']);
+    expect(fixture.componentInstance.sortedGames().map((g) => g.name)).toEqual([
+      'Alpha',
+      'Beta',
+      'Zelda',
+    ]);
   });
 
   it('sorts by release date descending, pushing unparseable dates to the end', () => {
@@ -76,7 +89,11 @@ describe('WishlistComponent', () => {
     flushWishlist();
 
     fixture.componentInstance.sortBy.set('release');
-    expect(fixture.componentInstance.sortedGames().map((g) => g.name)).toEqual(['Alpha', 'Zelda', 'Beta']);
+    expect(fixture.componentInstance.sortedGames().map((g) => g.name)).toEqual([
+      'Alpha',
+      'Zelda',
+      'Beta',
+    ]);
   });
 
   it('computes total price, free label, genre count and top genre', () => {
@@ -110,5 +127,33 @@ describe('WishlistComponent', () => {
       .flush('removed');
 
     expect(fixture.componentInstance.games().map((g) => g.name)).toEqual(['Alpha', 'Beta']);
+  });
+
+  it('excludes already-owned games from the suggestions list', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = create();
+    flushWishlist(games, [
+      { id: 'g1', name: 'Zelda' },
+      { id: 'g4', name: 'Chrono Trigger' },
+    ]);
+
+    expect(fixture.componentInstance.visibleSuggestions().map((g) => g.name)).toEqual([
+      'Chrono Trigger',
+    ]);
+  });
+
+  it('addSuggested() moves the game from suggestions into the wishlist', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = create();
+    flushWishlist(games, [{ id: 'g4', name: 'Chrono Trigger' }]);
+
+    fixture.componentInstance.addSuggested('Chrono Trigger');
+
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/wishlist/addWishlistGame`)
+      .flush('added');
+
+    expect(fixture.componentInstance.games().map((g) => g.name)).toContain('Chrono Trigger');
+    expect(fixture.componentInstance.visibleSuggestions()).toEqual([]);
   });
 });

@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
-import { UserNeo4j } from '../../core/models/user.model';
+import { SuggestedUser, UserNeo4j } from '../../core/models/user.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -18,7 +18,9 @@ import { TranslationService } from '../../core/services/translation.service';
       <h1 class="mb-8 text-3xl font-bold text-white">{{ i18n.t('friends.title') }}</h1>
 
       <section class="mb-10">
-        <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.addPeopleTitle') }}</h2>
+        <h2 class="mb-4 text-xl font-semibold text-white">
+          {{ i18n.t('friends.addPeopleTitle') }}
+        </h2>
         <input
           [formControl]="searchControl"
           [placeholder]="i18n.t('friends.searchPlaceholder')"
@@ -44,13 +46,37 @@ import { TranslationService } from '../../core/services/translation.service';
         }
       </section>
 
+      <section class="mb-10">
+        <h2 class="mb-4 text-xl font-semibold text-white">
+          {{ i18n.t('friends.suggestedTitle') }}
+        </h2>
+        @if (suggestionsLoading()) {
+          <app-loading-spinner />
+        } @else if (suggestedFriends().length === 0) {
+          <p class="text-slate-400">{{ i18n.t('friends.noSuggestions') }}</p>
+        } @else {
+          <div class="space-y-3">
+            @for (user of suggestedFriends(); track user.id) {
+              <app-user-card
+                [user]="user"
+                [showFollowButton]="true"
+                [isFollowing]="isFollowing(user.username)"
+                (followToggle)="isFollowing(user.username) ? unfollow($event) : follow($event)"
+              />
+            }
+          </div>
+        }
+      </section>
+
       <div #followingTopAnchor></div>
 
       @if (loading() && followingPage().length === 0) {
         <app-loading-spinner />
       } @else {
         <section class="mb-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">{{ i18n.t('friends.followingTitle') }}</h2>
+          <h2 class="mb-4 text-xl font-semibold text-white">
+            {{ i18n.t('friends.followingTitle') }}
+          </h2>
           @if (followingPage().length === 0) {
             <p class="text-slate-400">{{ i18n.t('friends.notFollowingAnyone') }}</p>
           } @else {
@@ -79,12 +105,19 @@ import { TranslationService } from '../../core/services/translation.service';
                 {{ i18n.t('common.prev') }}
               </button>
               <span class="text-sm text-slate-400">
-                {{ i18n.t('common.pageOf', { current: followingPageIndex() + 1, total: followingTotalPages() }) }}
+                {{
+                  i18n.t('common.pageOf', {
+                    current: followingPageIndex() + 1,
+                    total: followingTotalPages(),
+                  })
+                }}
               </span>
               <button
                 type="button"
                 (click)="nextFollowingPage()"
-                [disabled]="followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()"
+                [disabled]="
+                  followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()
+                "
                 class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {{ i18n.t('common.next') }}
@@ -112,6 +145,8 @@ export class FriendsComponent implements OnInit {
   readonly followingTotalPages = signal(1);
   readonly searchResults = signal<UserNeo4j[]>([]);
   readonly searching = signal(false);
+  readonly suggestedFriends = signal<SuggestedUser[]>([]);
+  readonly suggestionsLoading = signal(true);
 
   readonly searchControl = this.fb.nonNullable.control('');
 
@@ -124,6 +159,14 @@ export class FriendsComponent implements OnInit {
     });
 
     this.loadFollowingPage(0);
+
+    this.userService.getSuggestedFriends(username).subscribe({
+      next: (list) => {
+        this.suggestedFriends.set(list);
+        this.suggestionsLoading.set(false);
+      },
+      error: () => this.suggestionsLoading.set(false),
+    });
 
     this.searchControl.valueChanges
       .pipe(debounceTime(400), distinctUntilChanged())
@@ -152,7 +195,10 @@ export class FriendsComponent implements OnInit {
   prevFollowingPage(): void {
     if (this.followingPageIndex() > 0 && !this.navigatingFollowing()) {
       this.navigatingFollowing.set(true);
-      this.followingTopAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.followingTopAnchor()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
       this.loadFollowingPage(this.followingPageIndex() - 1);
     }
   }
@@ -160,7 +206,10 @@ export class FriendsComponent implements OnInit {
   nextFollowingPage(): void {
     if (this.followingPageIndex() < this.followingTotalPages() - 1 && !this.navigatingFollowing()) {
       this.navigatingFollowing.set(true);
-      this.followingTopAnchor()?.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      this.followingTopAnchor()?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
       this.loadFollowingPage(this.followingPageIndex() + 1);
     }
   }

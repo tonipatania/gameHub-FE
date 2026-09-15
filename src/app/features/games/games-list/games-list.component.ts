@@ -12,12 +12,7 @@ import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-games',
-  imports: [
-    ReactiveFormsModule,
-    NavbarComponent,
-    GameCardComponent,
-    LoadingSpinnerComponent,
-  ],
+  imports: [ReactiveFormsModule, NavbarComponent, GameCardComponent, LoadingSpinnerComponent],
   template: `
     <app-navbar />
     <main class="mx-auto max-w-7xl px-4 py-8">
@@ -53,10 +48,14 @@ import { TranslationService } from '../../../core/services/translation.service';
                 class="absolute right-0 z-20 mt-2 max-h-64 w-56 overflow-y-auto rounded-lg border border-slate-700 bg-slate-800 p-2 shadow-xl"
               >
                 @if (allGenres().length === 0) {
-                  <p class="px-2 py-1 text-sm text-slate-500">{{ i18n.t('games.noGenresAvailable') }}</p>
+                  <p class="px-2 py-1 text-sm text-slate-500">
+                    {{ i18n.t('games.noGenresAvailable') }}
+                  </p>
                 }
                 @for (genre of allGenres(); track genre) {
-                  <label class="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-slate-200 hover:bg-slate-700">
+                  <label
+                    class="flex items-center gap-2 rounded px-2 py-1.5 text-sm text-slate-200 hover:bg-slate-700"
+                  >
                     <input
                       type="checkbox"
                       [checked]="selectedGenres().has(genre)"
@@ -193,7 +192,11 @@ export class GamesComponent implements OnInit {
     this.loading.set(true);
     this.isSearching.set(true);
     this.gameService
-      .searchFilter({ name: name || undefined, genres: genres.length ? genres : undefined }, page, 24)
+      .searchFilter(
+        { name: name || undefined, genres: genres.length ? genres : undefined },
+        page,
+        24,
+      )
       .subscribe({
         next: (result) => {
           this.games.set(result.content);

@@ -6,10 +6,17 @@ import { of } from 'rxjs';
 import { ProfileComponent } from './profile.component';
 import { environment } from '../../../environments/environment';
 
-const wishlistPage = (overrides: Partial<{ content: unknown[]; totalPages: number; totalElements: number; number: number }> = {}) => ({
+const wishlistPage = (
+  overrides: Partial<{
+    content: unknown[];
+    totalPages: number;
+    totalElements: number;
+    number: number;
+  }> = {},
+) => ({
   content: overrides.content ?? [],
   totalPages: overrides.totalPages ?? 1,
-  totalElements: overrides.totalElements ?? (overrides.content?.length ?? 0),
+  totalElements: overrides.totalElements ?? overrides.content?.length ?? 0,
   size: 12,
   number: overrides.number ?? 0,
   first: (overrides.number ?? 0) === 0,
@@ -53,7 +60,9 @@ describe('ProfileComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = setup('toni');
 
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`).flush({ id: 'u1', username: 'toni' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u1', username: 'toni' });
     httpMock
       .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
       .flush(wishlistPage({ content: [{ id: 'g1', name: 'Portal 2' }], totalElements: 1 }));
@@ -71,7 +80,9 @@ describe('ProfileComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = setup('friend1');
 
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`).flush({ id: 'u2', username: 'friend1' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u2', username: 'friend1' });
     httpMock
       .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
       .flush(wishlistPage());
@@ -93,8 +104,12 @@ describe('ProfileComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = setup('toni');
 
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`).flush({ id: 'u1', username: 'toni' });
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`).flush(wishlistPage());
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u1', username: 'toni' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
+      .flush(wishlistPage());
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
 
     const c = fixture.componentInstance;
@@ -107,8 +122,12 @@ describe('ProfileComponent', () => {
     expect(sessionStorage.getItem('gamehub_user')).toBe('toni2');
 
     // updateUsername() triggers a fresh loadProfile() for the renamed user
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`).flush({ id: 'u1', username: 'toni2' });
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`).flush(wishlistPage());
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u1', username: 'toni2' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
+      .flush(wishlistPage());
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
   });
 
@@ -116,20 +135,30 @@ describe('ProfileComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = setup('friend1');
 
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`).flush({ id: 'u2', username: 'friend1' });
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`).flush(wishlistPage());
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/common`).flush([]);
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u2', username: 'friend1' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
+      .flush(wishlistPage());
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/common`)
+      .flush([]);
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
 
     const c = fixture.componentInstance;
     expect(c.isFollowing()).toBe(false);
 
     c.toggleFollow();
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/follow`).flush('followed');
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/follow`)
+      .flush('followed');
     expect(c.isFollowing()).toBe(true);
 
     c.toggleFollow();
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/unfollow`).flush('unfollowed');
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/unfollow`)
+      .flush('unfollowed');
     expect(c.isFollowing()).toBe(false);
   });
 
@@ -137,14 +166,20 @@ describe('ProfileComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = setup('toni');
 
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`).flush({ id: 'u1', username: 'toni' });
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`).flush(wishlistPage());
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u1', username: 'toni' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
+      .flush(wishlistPage());
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
 
     const c = fixture.componentInstance;
     c.changeSort('price');
 
-    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`);
+    const req = httpMock.expectOne(
+      (r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`,
+    );
     expect(req.request.params.get('sort')).toBe('price');
     expect(req.request.params.get('page')).toBe('0');
     req.flush(wishlistPage());

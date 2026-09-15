@@ -11,10 +11,7 @@ import { TranslationService } from '../../../core/services/translation.service';
       class="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 transition hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10 focus-within:border-violet-500"
     >
       @if (compact()) {
-        <a
-          [routerLink]="['/games', encodeName(game().name)]"
-          class="flex items-center gap-3 p-3"
-        >
+        <a [routerLink]="['/games', encodeName(game().name)]" class="flex items-center gap-3 p-3">
           <div class="relative h-11 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-800">
             @if (game().url?.headerImage) {
               <img
@@ -23,7 +20,9 @@ import { TranslationService } from '../../../core/services/translation.service';
                 class="h-full w-full object-cover"
               />
             } @else {
-              <div class="flex h-full items-center justify-center bg-gradient-to-br from-violet-900/40 to-slate-900 text-xl">
+              <div
+                class="flex h-full items-center justify-center bg-gradient-to-br from-violet-900/40 to-slate-900 text-xl"
+              >
                 🎮
               </div>
             }
@@ -35,7 +34,9 @@ import { TranslationService } from '../../../core/services/translation.service';
             }
           </div>
           @if (game().avgScore) {
-            <span class="shrink-0 rounded-full bg-emerald-500/90 px-2 py-0.5 text-xs font-semibold text-white">
+            <span
+              class="shrink-0 rounded-full bg-emerald-500/90 px-2 py-0.5 text-xs font-semibold text-white"
+            >
               {{ game().avgScore }}/10
             </span>
           }
@@ -73,7 +74,9 @@ import { TranslationService } from '../../../core/services/translation.service';
           }
         </div>
         <div class="p-4">
-          <h3 class="truncate text-lg font-semibold text-white transition group-hover:text-violet-300">
+          <h3
+            class="truncate text-lg font-semibold text-white transition group-hover:text-violet-300"
+          >
             {{ game().name }}
           </h3>
           @if (badge()) {

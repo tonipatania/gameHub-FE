@@ -26,16 +26,13 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    loadComponent: () =>
-      import('./features/home/home.component').then((m) => m.HomeComponent),
+    loadComponent: () => import('./features/home/home.component').then((m) => m.HomeComponent),
     canActivate: [authGuard],
   },
   {
     path: 'games',
     loadComponent: () =>
-      import('./features/games/games-list/games-list.component').then(
-        (m) => m.GamesComponent,
-      ),
+      import('./features/games/games-list/games-list.component').then((m) => m.GamesComponent),
     canActivate: [authGuard],
   },
   {

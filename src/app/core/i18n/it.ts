@@ -30,7 +30,7 @@ export const it: Record<string, string> = {
 
   'auth.signup.heading': 'Unisciti a',
   'auth.signup.successMessage':
-    'Registrazione completata! Controlla la tua email per confermare l\'account, poi accedi.',
+    "Registrazione completata! Controlla la tua email per confermare l'account, poi accedi.",
   'auth.signup.nameLabel': 'Nome',
   'auth.signup.surnameLabel': 'Cognome',
   'auth.signup.usernameLabel': 'Username',
@@ -49,7 +49,7 @@ export const it: Record<string, string> = {
   'auth.signup.genericError': 'Errore durante la registrazione',
 
   'auth.confirmEmail.pendingTitle': 'Conferma in corso...',
-  'auth.confirmEmail.pendingSubtitle': "Stiamo confermando il tuo account.",
+  'auth.confirmEmail.pendingSubtitle': 'Stiamo confermando il tuo account.',
   'auth.confirmEmail.successTitle': 'Account confermato!',
   'auth.confirmEmail.successSubtitle': 'Ora puoi accedere al tuo account GameHub.',
   'auth.confirmEmail.errorTitle': 'Conferma non riuscita',
@@ -58,12 +58,20 @@ export const it: Record<string, string> = {
 
   'home.welcome': 'Bentornato, {name} 👋',
   'home.subtitle': 'Scopri giochi, recensioni e persone in base alle tue interazioni',
-  'home.reviewFeedTitle': 'Feed recensioni',
-  'home.noReviews': 'Nessuna recensione disponibile. Esplora i giochi e lascia la tua!',
-  'home.suggestedGamesTitle': 'Giochi consigliati',
-  'home.noSuggestedGames': 'Interagisci con la piattaforma per ricevere suggerimenti personalizzati.',
-  'home.suggestedFriendsTitle': 'Persone da seguire',
-  'home.noSuggestedFriends': 'Nessun suggerimento al momento.',
+  'home.topRankedTitle': 'Giochi più votati',
+  'home.noRankedGames':
+    'Nessun gioco votato ancora. Esplora i giochi e lascia la prima recensione!',
+
+  'activityFeed.title': 'Attività degli amici',
+  'activityFeed.empty': 'Nessuna attività dalle persone che segui, per ora.',
+  'activityFeed.loadMore': 'Carica altro',
+  'activityFeed.loadingMore': 'Caricamento...',
+  'activityFeed.wishlistAdd': 'ha aggiunto {game} alla wishlist',
+  'activityFeed.review': 'ha recensito {game} — {score}/10',
+  'activityFeed.justNow': 'Proprio ora',
+  'activityFeed.minutesAgo': '{count}m fa',
+  'activityFeed.hoursAgo': '{count}h fa',
+  'activityFeed.daysAgo': '{count}g fa',
 
   'profile.notFound': 'Utente non trovato.',
   'profile.subtitle': 'Profilo GameHub',
@@ -103,11 +111,16 @@ export const it: Record<string, string> = {
   'wishlist.sortName': 'Nome',
   'wishlist.sortPrice': 'Prezzo',
   'wishlist.sortRelease': 'Uscita',
+  'wishlist.suggestedTitle': 'Consigliati per te',
+  'wishlist.noSuggestions':
+    'Interagisci con la piattaforma per ricevere suggerimenti personalizzati.',
 
   'friends.title': 'Community',
   'friends.addPeopleTitle': 'Aggiungi persone',
   'friends.searchPlaceholder': 'Cerca per username...',
   'friends.noUsersFound': 'Nessun utente trovato.',
+  'friends.suggestedTitle': 'Consigliati per te',
+  'friends.noSuggestions': 'Nessun suggerimento al momento.',
   'friends.followingTitle': 'Persone che segui',
   'friends.notFollowingAnyone': 'Non segui ancora nessuno.',
 

@@ -4,11 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  AuthResponse,
-  LoginRequest,
-  RegistrationRequest,
-} from '../models/user.model';
+import { AuthResponse, LoginRequest, RegistrationRequest } from '../models/user.model';
 
 const STORAGE_KEY = 'gamehub_user';
 const TOKEN_KEY = 'gamehub_token';
@@ -22,15 +18,13 @@ export class AuthService {
   readonly currentUser = signal<string | null>(this.readStoredUser());
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
-    return this.http
-      .post<AuthResponse>(`${environment.apiUrl}/login`, credentials)
-      .pipe(
-        tap((response) => {
-          if (response.success && response.username && response.token) {
-            this.setUser(response.username, response.token);
-          }
-        }),
-      );
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/login`, credentials).pipe(
+      tap((response) => {
+        if (response.success && response.username && response.token) {
+          this.setUser(response.username, response.token);
+        }
+      }),
+    );
   }
 
   signup(data: RegistrationRequest): Observable<string> {

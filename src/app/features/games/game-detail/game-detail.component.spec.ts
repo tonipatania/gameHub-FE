@@ -23,7 +23,15 @@ const gamePage = (overrides: Partial<{ name: string; reviews: unknown[] }> = {})
   last: true,
 });
 
-const emptyPage = { content: [], totalPages: 1, totalElements: 0, size: 1, number: 0, first: true, last: true };
+const emptyPage = {
+  content: [],
+  totalPages: 1,
+  totalElements: 0,
+  size: 1,
+  number: 0,
+  first: true,
+  last: true,
+};
 
 describe('GameDetailComponent', () => {
   let httpMock: HttpTestingController;
@@ -125,7 +133,9 @@ describe('GameDetailComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = create();
     flushGameLookup();
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`).flush([]);
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`)
+      .flush([]);
 
     fixture.componentInstance.reviewForm.setValue({ comment: 'Loved it', userScore: 10 });
     fixture.componentInstance.submitReview();
@@ -142,11 +152,22 @@ describe('GameDetailComponent', () => {
     createReq.flush('created');
 
     // submitReview() reloads the reviews for the game after a successful post
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/game/searchFilter`).flush(
-      gamePage({
-        reviews: [{ id: 'r1', title: 'Portal 2', username: 'toni', comment: 'Loved it', userScore: 10, likeCount: 0 }],
-      }),
-    );
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/game/searchFilter`)
+      .flush(
+        gamePage({
+          reviews: [
+            {
+              id: 'r1',
+              title: 'Portal 2',
+              username: 'toni',
+              comment: 'Loved it',
+              userScore: 10,
+              likeCount: 0,
+            },
+          ],
+        }),
+      );
 
     expect(fixture.componentInstance.submittingReview()).toBe(false);
     expect(fixture.componentInstance.reviewMessage()).toBeTruthy();
@@ -158,7 +179,9 @@ describe('GameDetailComponent', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = create();
     flushGameLookup();
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`).flush([]);
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`)
+      .flush([]);
 
     fixture.componentInstance.reviewForm.setValue({ comment: '', userScore: 8 });
     fixture.componentInstance.submitReview();

@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { GameService } from '../../core/services/game.service';
 import { UserService } from '../../core/services/user.service';
 import { Game } from '../../core/models/game.model';
 import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
@@ -26,10 +27,14 @@ type SortKey = 'name' | 'price' | 'release';
               @if (games().length === 0) {
                 {{ i18n.t('wishlist.subtitleEmpty') }}
               } @else {
-                {{ i18n.t(
-                  games().length === 1 ? 'wishlist.subtitleCountSingular' : 'wishlist.subtitleCountPlural',
-                  { count: games().length }
-                ) }}
+                {{
+                  i18n.t(
+                    games().length === 1
+                      ? 'wishlist.subtitleCountSingular'
+                      : 'wishlist.subtitleCountPlural',
+                    { count: games().length }
+                  )
+                }}
               }
             </p>
           </div>
@@ -39,19 +44,27 @@ type SortKey = 'name' | 'price' | 'release';
         @if (games().length > 0) {
           <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsGames') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsGames') }}
+              </dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ games().length }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsValue') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsValue') }}
+              </dt>
               <dd class="mt-1 text-2xl font-bold text-emerald-400">{{ totalPrice() }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsGenres') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsGenres') }}
+              </dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ genreCount() }}</dd>
             </div>
             <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">{{ i18n.t('wishlist.statsTopGenre') }}</dt>
+              <dt class="text-xs uppercase tracking-wide text-slate-500">
+                {{ i18n.t('wishlist.statsTopGenre') }}
+              </dt>
               <dd class="mt-1 truncate text-2xl font-bold text-violet-300" [title]="topGenre()">
                 {{ topGenre() }}
               </dd>
@@ -109,17 +122,49 @@ type SortKey = 'name' | 'price' | 'release';
           }
         </div>
       }
+
+      <section class="mt-10">
+        <h2 class="mb-4 text-lg font-semibold text-white">
+          {{ i18n.t('wishlist.suggestedTitle') }}
+        </h2>
+        @if (suggestionsLoading()) {
+          <app-loading-spinner />
+        } @else if (visibleSuggestions().length === 0) {
+          <p class="text-sm text-slate-500">{{ i18n.t('wishlist.noSuggestions') }}</p>
+        } @else {
+          <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            @for (game of visibleSuggestions(); track game.id) {
+              <app-game-card
+                [game]="game"
+                [showWishlistButton]="true"
+                [inWishlist]="false"
+                [showPrice]="true"
+                (wishlistToggle)="addSuggested($event)"
+              />
+            }
+          </div>
+        }
+      </section>
     </main>
   `,
 })
 export class WishlistComponent implements OnInit {
   private readonly auth = inject(AuthService);
+  private readonly gameService = inject(GameService);
   private readonly userService = inject(UserService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
   readonly games = signal<Game[]>([]);
   readonly sortBy = signal<SortKey>('name');
+
+  readonly suggestionsLoading = signal(true);
+  readonly suggestedGames = signal<Game[]>([]);
+
+  readonly visibleSuggestions = computed(() => {
+    const owned = new Set(this.games().map((g) => g.name));
+    return this.suggestedGames().filter((g) => !owned.has(g.name));
+  });
 
   // niente ordinamento per voto: avgScore vale 0 su oltre il 99% del catalogo, quindi sarebbe
   // un pulsante che non cambia nulla
@@ -189,6 +234,14 @@ export class WishlistComponent implements OnInit {
       },
       error: () => this.loading.set(false),
     });
+
+    this.gameService.suggestGames(username).subscribe({
+      next: (games) => {
+        this.suggestedGames.set(games);
+        this.suggestionsLoading.set(false);
+      },
+      error: () => this.suggestionsLoading.set(false),
+    });
   }
 
   remove(gameName: string): void {
@@ -197,6 +250,18 @@ export class WishlistComponent implements OnInit {
 
     this.userService.removeFromWishlist(username, gameName).subscribe({
       next: () => this.games.update((list) => list.filter((g) => g.name !== gameName)),
+    });
+  }
+
+  addSuggested(gameName: string): void {
+    const username = this.auth.getUsername();
+    if (!username) return;
+
+    this.userService.addToWishlist(username, gameName).subscribe({
+      next: () => {
+        const added = this.suggestedGames().find((g) => g.name === gameName);
+        if (added) this.games.update((list) => [...list, added]);
+      },
     });
   }
 }

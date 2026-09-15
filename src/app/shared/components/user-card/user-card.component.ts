@@ -68,6 +68,8 @@ export class UserCardComponent {
   }
 
   private plural(n: number | null | undefined): string {
-    return n === 1 ? this.i18n.t('userCard.gamesSingular') : this.i18n.t('userCard.gamesPlural', { count: n ?? 0 });
+    return n === 1
+      ? this.i18n.t('userCard.gamesSingular')
+      : this.i18n.t('userCard.gamesPlural', { count: n ?? 0 });
   }
 }

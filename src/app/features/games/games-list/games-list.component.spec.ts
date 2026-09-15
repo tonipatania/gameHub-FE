@@ -5,7 +5,15 @@ import { provideRouter } from '@angular/router';
 import { GamesComponent } from './games-list.component';
 import { environment } from '../../../../environments/environment';
 
-const emptyPage = { content: [], totalPages: 1, totalElements: 0, size: 24, number: 0, first: true, last: true };
+const emptyPage = {
+  content: [],
+  totalPages: 1,
+  totalElements: 0,
+  size: 24,
+  number: 0,
+  first: true,
+  last: true,
+};
 
 describe('GamesComponent', () => {
   let httpMock: HttpTestingController;
@@ -35,7 +43,9 @@ describe('GamesComponent', () => {
     fixture.detectChanges();
 
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/game/getAll`).flush(firstPage);
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/game/genres`).flush(['RPG', 'Action']);
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/game/genres`)
+      .flush(['RPG', 'Action']);
 
     return fixture;
   }
@@ -58,7 +68,8 @@ describe('GamesComponent', () => {
 
     vi.advanceTimersByTime(1);
     const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiUrl}/game/searchFilter` && r.params.get('name') === 'zelda',
+      (r) =>
+        r.url === `${environment.apiUrl}/game/searchFilter` && r.params.get('name') === 'zelda',
     );
     req.flush(emptyPage);
 
@@ -72,7 +83,9 @@ describe('GamesComponent', () => {
     c.toggleGenre('RPG');
 
     const req = httpMock.expectOne(
-      (r) => r.url === `${environment.apiUrl}/game/searchFilter` && !!r.params.getAll('genres')?.includes('RPG'),
+      (r) =>
+        r.url === `${environment.apiUrl}/game/searchFilter` &&
+        !!r.params.getAll('genres')?.includes('RPG'),
     );
     req.flush(emptyPage);
 

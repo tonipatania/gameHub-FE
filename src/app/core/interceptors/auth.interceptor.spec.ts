@@ -7,7 +7,11 @@ import { AuthService } from '../services/auth.service';
 describe('authInterceptor', () => {
   let http: HttpClient;
   let httpMock: HttpTestingController;
-  let authStub: { getToken: ReturnType<typeof vi.fn>; isLoggedIn: ReturnType<typeof vi.fn>; logout: ReturnType<typeof vi.fn> };
+  let authStub: {
+    getToken: ReturnType<typeof vi.fn>;
+    isLoggedIn: ReturnType<typeof vi.fn>;
+    logout: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     authStub = {
