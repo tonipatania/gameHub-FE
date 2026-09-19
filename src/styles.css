@@ -1,7 +1,24 @@
 @import 'tailwindcss';
+@import '@angular/cdk/overlay-prebuilt.css';
 
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Il contenuto (ToastContentComponent) disegna la card vera e propria in Tailwind:
+   qui si spoglia il chrome di default di MatSnackBar (sfondo, ombra, padding, min-width)
+   cosi' resta solo l'animazione nativa di Material (scale+fade in/out). */
+.gh-toast-panel .mat-mdc-snackbar-surface {
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.gh-toast-panel .mdc-snackbar__label {
+  padding: 0 !important;
+  width: auto !important;
 }
 
 html,
