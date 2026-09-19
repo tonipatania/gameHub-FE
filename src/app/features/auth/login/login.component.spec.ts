@@ -120,4 +120,11 @@ describe('LoginComponent', () => {
     expect(fixture.componentInstance.loading()).toBe(false);
     expect(toastErrorSpy).toHaveBeenCalledWith(i18n.t('auth.login.connectionError'));
   });
+
+  it('links to the forgot-password page', () => {
+    const fixture = create();
+    const link = fixture.nativeElement.querySelector('a[href="/forgot-password"]');
+    expect(link).not.toBeNull();
+    expect(link.textContent).toContain(i18n.t('auth.login.forgotPasswordLink'));
+  });
 });

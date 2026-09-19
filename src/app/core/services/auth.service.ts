@@ -40,6 +40,22 @@ export class AuthService {
     });
   }
 
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post(
+      `${environment.apiUrl}/forgot-password`,
+      { email },
+      { responseType: 'text' },
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<string> {
+    return this.http.post(
+      `${environment.apiUrl}/reset-password`,
+      { token, newPassword },
+      { responseType: 'text' },
+    );
+  }
+
   logout(): void {
     const token = this.getToken();
     if (isPlatformBrowser(this.platformId)) {

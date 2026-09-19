@@ -133,4 +133,31 @@ describe('AuthService', () => {
     expect(req.request.body).toEqual(payload);
     req.flush('ok');
   });
+
+  it('forgotPassword posts the email as text and does not touch the session', () => {
+    let result: string | undefined;
+    service.forgotPassword('mario@example.com').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/forgot-password`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'mario@example.com' });
+    expect(req.request.responseType).toBe('text');
+    req.flush('ok');
+
+    expect(result).toBe('ok');
+    expect(service.isLoggedIn()).toBe(false);
+  });
+
+  it('resetPassword posts the token and new password as text', () => {
+    let result: string | undefined;
+    service.resetPassword('tok-123', 'NewPassw0rd!').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/reset-password`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'tok-123', newPassword: 'NewPassw0rd!' });
+    expect(req.request.responseType).toBe('text');
+    req.flush('done');
+
+    expect(result).toBe('done');
+  });
 });

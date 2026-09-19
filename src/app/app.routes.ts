@@ -16,6 +16,23 @@ export const routes: Routes = [
     canActivate: [guestGuard],
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+    canActivate: [guestGuard],
+  },
+  {
+    // No guard: like the confirmation link, a reset link must work even if the browser
+    // already has an unrelated session logged in.
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+  },
+  {
     // No guard: a confirmation link must work regardless of whether the browser already
     // has an unrelated session logged in.
     path: 'confirm-email',

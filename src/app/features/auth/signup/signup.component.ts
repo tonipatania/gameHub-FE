@@ -1,22 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import {
-  AbstractControl,
-  FormBuilder,
-  ReactiveFormsModule,
-  ValidationErrors,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { ToastService } from '../../../core/services/toast.service';
-
-function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
-  const password = group.get('password')?.value;
-  const confirmPassword = group.get('confirmPassword')?.value;
-  return password === confirmPassword ? null : { passwordMismatch: true };
-}
+import {
+  PASSWORD_PATTERN,
+  passwordsMatchValidator,
+} from '../../../core/validators/password.validators';
 
 @Component({
   selector: 'app-signup',
@@ -176,7 +168,7 @@ export class SignupComponent {
           Validators.required,
           Validators.minLength(8),
           Validators.maxLength(32),
-          Validators.pattern(/^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).+$/),
+          Validators.pattern(PASSWORD_PATTERN),
         ],
       ],
       confirmPassword: ['', Validators.required],

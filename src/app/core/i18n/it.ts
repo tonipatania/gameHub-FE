@@ -30,6 +30,7 @@ export const it: Record<string, string> = {
     'Account non confermato: controlla la tua email per completare la registrazione',
   'auth.login.authError': "Si è verificato un errore durante l'autenticazione",
   'auth.login.connectionError': 'Errore di connessione al server',
+  'auth.login.forgotPasswordLink': 'Password dimenticata?',
 
   'auth.signup.heading': 'Unisciti a',
   'auth.signup.successMessage':
@@ -58,6 +59,29 @@ export const it: Record<string, string> = {
   'auth.confirmEmail.errorTitle': 'Conferma non riuscita',
   'auth.confirmEmail.missingToken': 'Link di conferma incompleto.',
   'auth.confirmEmail.goToLogin': 'Vai al login',
+
+  'auth.forgotPassword.heading': 'Password dimenticata?',
+  'auth.forgotPassword.subtitle':
+    "Inserisci l'email del tuo account: ti invieremo un link per scegliere una nuova password.",
+  'auth.forgotPassword.emailLabel': 'Email',
+  'auth.forgotPassword.submit': 'Invia link',
+  'auth.forgotPassword.submitLoading': 'Invio...',
+  'auth.forgotPassword.backToLogin': 'Torna al login',
+  'auth.forgotPassword.sentTitle': 'Controlla la tua email',
+  'auth.forgotPassword.sentMessage':
+    "Se l'email è associata a un account, riceverai a breve un link per reimpostare la password. Il link scade tra 1 ora.",
+  'auth.forgotPassword.tooManyRequests': 'Troppe richieste, riprova tra qualche minuto',
+
+  'auth.resetPassword.heading': 'Scegli una nuova password',
+  'auth.resetPassword.passwordLabel': 'Nuova password',
+  'auth.resetPassword.submit': 'Salva password',
+  'auth.resetPassword.submitLoading': 'Salvataggio...',
+  'auth.resetPassword.successTitle': 'Password aggiornata!',
+  'auth.resetPassword.successMessage': 'Ora puoi accedere con la tua nuova password.',
+  'auth.resetPassword.invalidLinkTitle': 'Link non valido',
+  'auth.resetPassword.missingToken': 'Link di reimpostazione incompleto.',
+  'auth.resetPassword.requestNewLink': 'Richiedi un nuovo link',
+  'auth.resetPassword.expiredLink': 'Link scaduto, richiedine uno nuovo',
 
   'home.welcome': 'Bentornato, {name} 👋',
   'home.subtitle': 'Scopri giochi, recensioni e persone in base alle tue interazioni',

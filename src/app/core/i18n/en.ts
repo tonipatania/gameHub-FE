@@ -30,6 +30,7 @@ export const en: Record<string, string> = {
     'Account not confirmed: check your email to complete registration',
   'auth.login.authError': 'An error occurred while authenticating',
   'auth.login.connectionError': 'Error connecting to the server',
+  'auth.login.forgotPasswordLink': 'Forgot your password?',
 
   'auth.signup.heading': 'Join',
   'auth.signup.successMessage':
@@ -58,6 +59,29 @@ export const en: Record<string, string> = {
   'auth.confirmEmail.errorTitle': 'Confirmation failed',
   'auth.confirmEmail.missingToken': 'Incomplete confirmation link.',
   'auth.confirmEmail.goToLogin': 'Go to login',
+
+  'auth.forgotPassword.heading': 'Forgot your password?',
+  'auth.forgotPassword.subtitle':
+    "Enter your account's email and we'll send you a link to choose a new password.",
+  'auth.forgotPassword.emailLabel': 'Email',
+  'auth.forgotPassword.submit': 'Send link',
+  'auth.forgotPassword.submitLoading': 'Sending...',
+  'auth.forgotPassword.backToLogin': 'Back to login',
+  'auth.forgotPassword.sentTitle': 'Check your email',
+  'auth.forgotPassword.sentMessage':
+    "If the email is linked to an account, you'll receive a link to reset your password shortly. The link expires in 1 hour.",
+  'auth.forgotPassword.tooManyRequests': 'Too many requests, try again in a few minutes',
+
+  'auth.resetPassword.heading': 'Choose a new password',
+  'auth.resetPassword.passwordLabel': 'New password',
+  'auth.resetPassword.submit': 'Save password',
+  'auth.resetPassword.submitLoading': 'Saving...',
+  'auth.resetPassword.successTitle': 'Password updated!',
+  'auth.resetPassword.successMessage': 'You can now sign in with your new password.',
+  'auth.resetPassword.invalidLinkTitle': 'Invalid link',
+  'auth.resetPassword.missingToken': 'The reset link is incomplete.',
+  'auth.resetPassword.requestNewLink': 'Request a new link',
+  'auth.resetPassword.expiredLink': 'This link has expired, request a new one',
 
   'home.welcome': 'Welcome back, {name} 👋',
   'home.subtitle': 'Discover games, reviews and people based on your activity',

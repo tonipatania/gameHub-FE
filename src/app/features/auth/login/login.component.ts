@@ -39,7 +39,7 @@ import { ToastService } from '../../../core/services/toast.service';
             />
           </label>
 
-          <label class="mb-6 block">
+          <label class="mb-2 block">
             <span class="mb-1 block text-sm text-slate-400">{{
               i18n.t('auth.login.passwordLabel')
             }}</span>
@@ -53,6 +53,12 @@ import { ToastService } from '../../../core/services/toast.service';
               i18n.t('auth.login.passwordHint')
             }}</span>
           </label>
+
+          <p class="mb-6 text-right text-sm">
+            <a routerLink="/forgot-password" class="text-violet-400 hover:text-violet-300">
+              {{ i18n.t('auth.login.forgotPasswordLink') }}
+            </a>
+          </p>
 
           <button
             type="submit"
