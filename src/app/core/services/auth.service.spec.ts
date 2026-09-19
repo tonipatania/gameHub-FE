@@ -80,6 +80,41 @@ describe('AuthService', () => {
     expect(sessionStorage.getItem('gamehub_user')).toBeNull();
     expect(sessionStorage.getItem('gamehub_token')).toBeNull();
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/logout`);
+    req.flush(null);
+  });
+
+  it('logout revokes the token on the server with an explicit Authorization header', () => {
+    sessionStorage.setItem('gamehub_token', 'tok123');
+
+    service.logout();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/logout`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer tok123');
+    req.flush(null);
+  });
+
+  it('logout still completes locally when the server-side revocation fails', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    sessionStorage.setItem('gamehub_token', 'tok123');
+    service.updateUsername('toni');
+
+    service.logout();
+    httpMock
+      .expectOne(`${environment.apiUrl}/logout`)
+      .flush('boom', { status: 500, statusText: 'Server Error' });
+
+    expect(service.isLoggedIn()).toBe(false);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('logout does not call the server when there is no token', () => {
+    service.logout();
+
+    httpMock.expectNone(`${environment.apiUrl}/logout`);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('signup posts registration data and expects a text response', () => {
