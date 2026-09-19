@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { GameDetailComponent } from './game-detail.component';
+import { ToastService } from '../../../core/services/toast.service';
 import { environment } from '../../../../environments/environment';
 
 const gamePage = (overrides: Partial<{ name: string; reviews: unknown[] }> = {}) => ({
@@ -137,6 +138,8 @@ describe('GameDetailComponent', () => {
       .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist`)
       .flush([]);
 
+    const toastSuccessSpy = vi.spyOn(TestBed.inject(ToastService), 'success');
+
     fixture.componentInstance.reviewForm.setValue({ comment: 'Loved it', userScore: 10 });
     fixture.componentInstance.submitReview();
 
@@ -170,7 +173,7 @@ describe('GameDetailComponent', () => {
       );
 
     expect(fixture.componentInstance.submittingReview()).toBe(false);
-    expect(fixture.componentInstance.reviewMessage()).toBeTruthy();
+    expect(toastSuccessSpy).toHaveBeenCalled();
     expect(fixture.componentInstance.reviewForm.value.comment).toBe('');
     expect(fixture.componentInstance.reviews().length).toBe(1);
   });

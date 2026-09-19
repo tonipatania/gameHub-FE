@@ -10,6 +10,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslationService } from '../../../core/services/translation.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -35,17 +36,6 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
           (ngSubmit)="onSubmit()"
           class="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-xl"
         >
-          @if (error()) {
-            <div class="mb-4 rounded-lg bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
-              {{ error() }}
-            </div>
-          }
-          @if (success()) {
-            <div class="mb-4 rounded-lg bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
-              {{ i18n.t('auth.signup.successMessage') }}
-            </div>
-          }
-
           <div class="mb-4 grid grid-cols-2 gap-3">
             <label>
               <span class="mb-1 block text-sm text-slate-400">{{
@@ -167,11 +157,10 @@ export class SignupComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(false);
-  readonly error = signal('');
-  readonly success = signal(false);
   readonly passwordFocused = signal(false);
   readonly confirmPasswordTouched = signal(false);
 
@@ -213,19 +202,18 @@ export class SignupComponent {
     if (this.form.invalid) return;
 
     this.loading.set(true);
-    this.error.set('');
 
     const { confirmPassword, ...registration } = this.form.getRawValue();
 
     this.auth.signup(registration).subscribe({
       next: () => {
         this.loading.set(false);
-        this.success.set(true);
+        this.toast.success(this.i18n.t('auth.signup.successMessage'));
         setTimeout(() => this.router.navigate(['/login']), 2000);
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(
+        this.toast.error(
           typeof err.error === 'string' ? err.error : this.i18n.t('auth.signup.genericError'),
         );
       },

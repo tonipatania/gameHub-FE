@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslationService } from '../../../core/services/translation.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -25,12 +26,6 @@ import { TranslationService } from '../../../core/services/translation.service';
           class="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-xl"
         >
           <h2 class="mb-6 text-xl font-semibold text-white">{{ i18n.t('auth.login.heading') }}</h2>
-
-          @if (error()) {
-            <div class="mb-4 rounded-lg bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
-              {{ error() }}
-            </div>
-          }
 
           <label class="mb-4 block">
             <span class="mb-1 block text-sm text-slate-400">{{
@@ -82,10 +77,10 @@ export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(false);
-  readonly error = signal('');
 
   readonly form = this.fb.nonNullable.group({
     username: ['', Validators.required],
@@ -96,7 +91,6 @@ export class LoginComponent {
     if (this.form.invalid) return;
 
     this.loading.set(true);
-    this.error.set('');
 
     this.auth.login(this.form.getRawValue()).subscribe({
       next: (response) => {
@@ -104,7 +98,7 @@ export class LoginComponent {
         if (response.success) {
           this.router.navigate(['/home']);
         } else {
-          this.error.set(this.translateAuthError(response.errorCode));
+          this.toast.error(this.translateAuthError(response.errorCode));
         }
       },
       error: (err: HttpErrorResponse) => {
@@ -113,17 +107,17 @@ export class LoginComponent {
           // Credenziali errate o account non confermato: torna un AuthResponse JSON con
           // errorCode, tradotto lato client cosi' il messaggio segue la lingua dell'interfaccia
           // invece di quella hardcoded nel backend.
-          this.error.set(this.translateAuthError(err.error?.errorCode));
+          this.toast.error(this.translateAuthError(err.error?.errorCode));
         } else if (err.status === 400) {
           // Validazione fallita (es. password troppo lunga): il backend risponde gia' in
           // italiano con un body testuale semplice.
-          this.error.set(
+          this.toast.error(
             typeof err.error === 'string'
               ? err.error
               : this.i18n.t('auth.login.invalidCredentials'),
           );
         } else {
-          this.error.set(this.i18n.t('auth.login.connectionError'));
+          this.toast.error(this.i18n.t('auth.login.connectionError'));
         }
       },
     });

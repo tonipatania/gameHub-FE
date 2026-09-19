@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, ActivatedRoute, convertToParamMap } from '@angular/router';
 import { of } from 'rxjs';
 import { ProfileComponent } from './profile.component';
+import { ToastService } from '../../core/services/toast.service';
 import { environment } from '../../../environments/environment';
 
 const wishlistPage = (
@@ -112,13 +113,15 @@ describe('ProfileComponent', () => {
       .flush(wishlistPage());
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
 
+    const toastSuccessSpy = vi.spyOn(TestBed.inject(ToastService), 'success');
+
     const c = fixture.componentInstance;
     c.usernameForm.setValue({ newUsername: 'toni2' });
     c.updateUsername();
 
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/updateUser`).flush('updated');
 
-    expect(c.updateMessage()).toBeTruthy();
+    expect(toastSuccessSpy).toHaveBeenCalled();
     expect(sessionStorage.getItem('gamehub_user')).toBe('toni2');
 
     // updateUsername() triggers a fresh loadProfile() for the renamed user

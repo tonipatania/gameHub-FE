@@ -4,6 +4,9 @@ export const en: Record<string, string> = {
   'common.next': 'Next →',
   'common.pageOf': 'Page {current} of {total}',
   'common.free': 'Free',
+  'common.toastSuccess': 'Success',
+  'common.toastError': 'Error',
+  'common.toastInfo': 'Info',
 
   'nav.home': 'Home',
   'nav.games': 'Games',
@@ -142,6 +145,7 @@ export const en: Record<string, string> = {
   'gameDetail.scoreLabel': 'Score (1-10)',
   'gameDetail.publishReview': 'Publish review',
   'gameDetail.reviewPublished': 'Review published!',
+  'gameDetail.reviewError': 'Error publishing the review',
   'gameDetail.topReviewsTitle': 'Top reviews ({count})',
   'gameDetail.noReviews': 'Be the first to review this game!',
 

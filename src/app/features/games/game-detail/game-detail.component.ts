@@ -15,6 +15,7 @@ import {
 } from '../../../shared/components/review-card/review-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../../core/services/translation.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-game-detail',
@@ -148,9 +149,6 @@ import { TranslationService } from '../../../core/services/translation.service';
                 class="w-24 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
               />
             </label>
-            @if (reviewMessage()) {
-              <p class="mb-4 text-sm text-emerald-400">{{ reviewMessage() }}</p>
-            }
             <button
               type="submit"
               [disabled]="reviewForm.invalid || submittingReview()"
@@ -186,6 +184,7 @@ export class GameDetailComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
@@ -193,7 +192,6 @@ export class GameDetailComponent implements OnInit {
   readonly reviews = signal<Review[]>([]);
   readonly inWishlist = signal(false);
   readonly submittingReview = signal(false);
-  readonly reviewMessage = signal('');
 
   readonly reviewForm = this.fb.nonNullable.group({
     comment: ['', Validators.required],
@@ -238,11 +236,14 @@ export class GameDetailComponent implements OnInit {
       .subscribe({
         next: () => {
           this.submittingReview.set(false);
-          this.reviewMessage.set(this.i18n.t('gameDetail.reviewPublished'));
+          this.toast.success(this.i18n.t('gameDetail.reviewPublished'));
           this.reviewForm.reset({ comment: '', userScore: 8 });
           this.loadReviews();
         },
-        error: () => this.submittingReview.set(false),
+        error: () => {
+          this.submittingReview.set(false);
+          this.toast.error(this.i18n.t('gameDetail.reviewError'));
+        },
       });
   }
 

@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideRouter, Router } from '@angular/router';
 import { LoginComponent } from './login.component';
 import { TranslationService } from '../../../core/services/translation.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { environment } from '../../../../environments/environment';
 
 describe('LoginComponent', () => {
@@ -11,6 +12,7 @@ describe('LoginComponent', () => {
   let router: Router;
   let navigateSpy: ReturnType<typeof vi.spyOn>;
   let i18n: TranslationService;
+  let toastErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -22,6 +24,7 @@ describe('LoginComponent', () => {
     router = TestBed.inject(Router);
     navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     i18n = TestBed.inject(TranslationService);
+    toastErrorSpy = vi.spyOn(TestBed.inject(ToastService), 'error');
   });
 
   afterEach(() => httpMock.verify());
@@ -78,7 +81,7 @@ describe('LoginComponent', () => {
     });
 
     expect(navigateSpy).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.error()).toBe(i18n.t('auth.login.invalidCredentials'));
+    expect(toastErrorSpy).toHaveBeenCalledWith(i18n.t('auth.login.invalidCredentials'));
   });
 
   it('translates the email-not-confirmed error code from a 401 response', () => {
@@ -102,7 +105,7 @@ describe('LoginComponent', () => {
     );
 
     expect(navigateSpy).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.error()).toBe(i18n.t('auth.login.emailNotConfirmed'));
+    expect(toastErrorSpy).toHaveBeenCalledWith(i18n.t('auth.login.emailNotConfirmed'));
   });
 
   it('shows a connection error message when the request fails', () => {
@@ -115,6 +118,6 @@ describe('LoginComponent', () => {
     req.error(new ProgressEvent('network error'));
 
     expect(fixture.componentInstance.loading()).toBe(false);
-    expect(fixture.componentInstance.error()).not.toBe('');
+    expect(toastErrorSpy).toHaveBeenCalledWith(i18n.t('auth.login.connectionError'));
   });
 });

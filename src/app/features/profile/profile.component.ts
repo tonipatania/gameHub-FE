@@ -11,6 +11,7 @@ import { BackButtonComponent } from '../../shared/components/back-button/back-bu
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../core/services/translation.service';
+import { ToastService } from '../../core/services/toast.service';
 
 type WishlistSortKey = 'name' | 'price' | 'release';
 
@@ -63,9 +64,6 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                 {{ i18n.t('profile.updateButton') }}
               </button>
             </form>
-            @if (updateMessage()) {
-              <p class="mt-2 text-sm text-emerald-400">{{ updateMessage() }}</p>
-            }
           </section>
         } @else {
           <button
@@ -216,6 +214,7 @@ export class ProfileComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
   private readonly fb = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
@@ -231,7 +230,6 @@ export class ProfileComponent implements OnInit {
   // totale della wishlist completa: con il filtro attivo wishlistTotal() vale solo il sottoinsieme
   readonly wishlistTotalAll = signal(0);
   readonly isFollowing = signal(false);
-  readonly updateMessage = signal('');
 
   readonly sortOptions: { key: WishlistSortKey; labelKey: string }[] = [
     { key: 'name', labelKey: 'profile.sortName' },
@@ -291,13 +289,13 @@ export class ProfileComponent implements OnInit {
     const newUsername = this.usernameForm.getRawValue().newUsername;
     this.userService.updateUsername(current, newUsername).subscribe({
       next: () => {
-        this.updateMessage.set(this.i18n.t('profile.usernameUpdated'));
+        this.toast.success(this.i18n.t('profile.usernameUpdated'));
         this.profileUsername = newUsername;
         this.auth.updateUsername(newUsername);
         this.loadProfile();
       },
       error: (err) => {
-        this.updateMessage.set(
+        this.toast.error(
           typeof err.error === 'string' ? err.error : this.i18n.t('profile.updateError'),
         );
       },

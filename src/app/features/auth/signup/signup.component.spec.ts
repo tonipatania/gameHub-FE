@@ -3,11 +3,14 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
 import { SignupComponent } from './signup.component';
+import { ToastService } from '../../../core/services/toast.service';
 import { environment } from '../../../../environments/environment';
 
 describe('SignupComponent', () => {
   let httpMock: HttpTestingController;
   let navigateSpy: ReturnType<typeof vi.spyOn>;
+  let toastSuccessSpy: ReturnType<typeof vi.spyOn>;
+  let toastErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.useFakeTimers();
@@ -19,6 +22,9 @@ describe('SignupComponent', () => {
 
     httpMock = TestBed.inject(HttpTestingController);
     navigateSpy = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const toast = TestBed.inject(ToastService);
+    toastSuccessSpy = vi.spyOn(toast, 'success');
+    toastErrorSpy = vi.spyOn(toast, 'error');
   });
 
   afterEach(() => {
@@ -73,7 +79,7 @@ describe('SignupComponent', () => {
     expect(req.request.body).toEqual(validPayload);
     req.flush('created');
 
-    expect(fixture.componentInstance.success()).toBe(true);
+    expect(toastSuccessSpy).toHaveBeenCalled();
     expect(fixture.componentInstance.loading()).toBe(false);
     expect(navigateSpy).not.toHaveBeenCalled();
 
@@ -90,7 +96,6 @@ describe('SignupComponent', () => {
     const req = httpMock.expectOne(`${environment.apiUrl}/signup`);
     req.flush('username already taken', { status: 409, statusText: 'Conflict' });
 
-    expect(fixture.componentInstance.error()).toBe('username already taken');
-    expect(fixture.componentInstance.success()).toBe(false);
+    expect(toastErrorSpy).toHaveBeenCalledWith('username already taken');
   });
 });
