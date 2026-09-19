@@ -41,12 +41,25 @@ export class AuthService {
   }
 
   logout(): void {
+    const token = this.getToken();
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.removeItem(STORAGE_KEY);
       sessionStorage.removeItem(TOKEN_KEY);
     }
     this.currentUser.set(null);
     this.router.navigate(['/login']);
+
+    if (token) {
+      // Il logout locale e' gia' completo (utente reindirizzato, sessione pulita): la revoca sul
+      // server e' un tentativo "best effort" che non deve bloccare l'uscita se la rete o il
+      // backend hanno un problema. L'header va passato esplicitamente qui perche' getToken() ora
+      // restituisce gia' null (l'interceptor non lo aggiungerebbe piu' da solo).
+      this.http
+        .post(`${environment.apiUrl}/logout`, null, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .subscribe({ error: () => undefined });
+    }
   }
 
   isLoggedIn(): boolean {
