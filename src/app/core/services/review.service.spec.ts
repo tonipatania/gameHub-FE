@@ -28,6 +28,14 @@ describe('ReviewService', () => {
     req.flush('created');
   });
 
+  it('getReview fetches a single review by id', () => {
+    service.getReview('r 1').subscribe((review) => expect(review.id).toBe('r 1'));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/review/r%201`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ id: 'r 1' });
+  });
+
   it('hasLiked is false before any liked reviews are loaded', () => {
     expect(service.hasLiked('r1')).toBe(false);
   });

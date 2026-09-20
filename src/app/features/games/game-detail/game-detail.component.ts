@@ -144,6 +144,20 @@ import { ToastService } from '../../../core/services/toast.service';
             </section>
 
             <section>
+              @if (pinnedReview(); as pinned) {
+                <!-- la recensione di una notifica puo' non essere tra le piu' votate: si mostra
+                     comunque, sopra l'elenco, senza gonfiarne il conteggio -->
+                <div class="mb-6">
+                  <app-review-card
+                    [review]="pinned"
+                    [allowReplies]="true"
+                    [replyCount]="replyCounts()[pinned.id] ?? 0"
+                    [highlight]="true"
+                    [openThread]="openThread"
+                    (likeChange)="onLikeChange($event)"
+                  />
+                </div>
+              }
               <h2 class="gh-section-title mb-4">
                 {{ i18n.t('gameDetail.topReviewsTitle', { count: reviews().length }) }}
               </h2>
@@ -156,6 +170,8 @@ import { ToastService } from '../../../core/services/toast.service';
                       [review]="review"
                       [allowReplies]="true"
                       [replyCount]="replyCounts()[review.id] ?? 0"
+                      [highlight]="review.id === focusReviewId"
+                      [openThread]="review.id === focusReviewId && openThread"
                       (likeChange)="onLikeChange($event)"
                     />
                   }
@@ -185,6 +201,8 @@ export class GameDetailComponent implements OnInit {
   readonly submittingReview = signal(false);
   // risposte per recensione, caricate in blocco: le card mostrano "N risposte" senza aprire il thread
   readonly replyCounts = signal<Record<string, number>>({});
+  // recensione indicata da una notifica che non e' tra quelle caricate (solo le piu' votate lo sono)
+  readonly pinnedReview = signal<Review | null>(null);
   readonly scoreColor = scoreColor;
 
   readonly reviewForm = this.fb.nonNullable.group({
@@ -193,10 +211,18 @@ export class GameDetailComponent implements OnInit {
   });
 
   private gameName = '';
+  // ?review=<id>&thread=1: dove porta una notifica (evidenzia la recensione, per le risposte
+  // apre anche il thread)
+  focusReviewId: string | null = null;
+  openThread = false;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       this.gameName = decodeURIComponent(params.get('name') ?? '');
+      const query = this.route.snapshot.queryParamMap;
+      this.focusReviewId = query.get('review');
+      this.openThread = query.get('thread') === '1';
+      this.pinnedReview.set(null);
       this.loadGame();
     });
   }
@@ -242,9 +268,9 @@ export class GameDetailComponent implements OnInit {
   }
 
   onLikeChange({ reviewId, delta }: LikeChange): void {
-    this.reviews.update((list) =>
-      list.map((r) => (r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r)),
-    );
+    const bump = (r: Review) => (r.id === reviewId ? { ...r, likeCount: r.likeCount + delta } : r);
+    this.reviews.update((list) => list.map(bump));
+    this.pinnedReview.update((r) => (r ? bump(r) : r));
   }
 
   private loadGame(): void {
@@ -255,6 +281,7 @@ export class GameDetailComponent implements OnInit {
         const game = page.content[0] ?? null;
         this.game.set(game);
         this.reviews.set(game?.reviews ?? []);
+        this.pinFocusedReview();
         this.loadReplyCounts();
         this.loading.set(false);
       },
@@ -278,8 +305,25 @@ export class GameDetailComponent implements OnInit {
     });
   }
 
+  // la recensione di una notifica va mostrata anche se non e' tra quelle caricate col gioco
+  private pinFocusedReview(): void {
+    const id = this.focusReviewId;
+    if (!id || this.reviews().some((r) => r.id === id)) return;
+
+    this.reviewService.getReview(id).subscribe({
+      next: (review) => {
+        // solo se e' davvero una recensione di questo gioco: l'id arriva da un parametro d'URL
+        if (review.title !== this.gameName) return;
+        this.pinnedReview.set(review);
+        this.loadReplyCounts();
+      },
+      error: () => this.toast.info(this.i18n.t('gameDetail.reviewGone')),
+    });
+  }
+
   private loadReplyCounts(): void {
-    const ids = this.reviews().map((r) => r.id);
+    const pinned = this.pinnedReview();
+    const ids = [...this.reviews().map((r) => r.id), ...(pinned ? [pinned.id] : [])];
     this.reviewService.getReplyCounts(ids).subscribe({
       next: (counts) => this.replyCounts.set(counts),
       // i conteggi sono un di piu': senza, le card mostrano "Rispondi" e il thread resta apribile

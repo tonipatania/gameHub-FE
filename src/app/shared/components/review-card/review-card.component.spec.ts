@@ -186,6 +186,46 @@ describe('ReviewCardComponent', () => {
     });
   });
 
+  describe('arriving from a notification', () => {
+    it('is not highlighted by default', () => {
+      const fixture = create();
+
+      expect(
+        (fixture.nativeElement as HTMLElement).querySelector('article')?.className,
+      ).not.toContain('ring-2');
+    });
+
+    it('is highlighted and scrolled into view when asked to', () => {
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      const fixture = TestBed.createComponent(ReviewCardComponent);
+      fixture.componentRef.setInput('review', baseReview);
+      fixture.componentRef.setInput('highlight', true);
+      fixture.detectChanges();
+
+      expect((fixture.nativeElement as HTMLElement).querySelector('article')?.className).toContain(
+        'ring-2',
+      );
+      expect(scrollIntoView).toHaveBeenCalledWith({ block: 'center' });
+    });
+
+    it('opens the reply thread on arrival, and the user can still close it', () => {
+      const fixture = TestBed.createComponent(ReviewCardComponent);
+      fixture.componentRef.setInput('review', baseReview);
+      fixture.componentRef.setInput('allowReplies', true);
+      fixture.componentRef.setInput('replyCount', 2);
+      fixture.componentRef.setInput('openThread', true);
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.repliesOpen()).toBe(true);
+      httpMock.expectOne((r) => r.url === `${environment.apiUrl}/review/replies`).flush([]);
+
+      fixture.componentInstance.repliesOpen.set(false);
+      fixture.detectChanges();
+      expect((fixture.nativeElement as HTMLElement).querySelector('app-review-replies')).toBeNull();
+    });
+  });
+
   describe('replies', () => {
     function createWithReplies(review: Review, replyCount: number) {
       const fixture = TestBed.createComponent(ReviewCardComponent);

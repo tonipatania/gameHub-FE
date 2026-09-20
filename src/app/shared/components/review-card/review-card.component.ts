@@ -1,4 +1,14 @@
-import { Component, computed, inject, input, linkedSignal, output, signal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  linkedSignal,
+  output,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Review } from '../../../core/models/review.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -20,6 +30,8 @@ export interface LikeChange {
       [class]="
         embedded() ? 'rounded-lg border border-slate-800 bg-slate-950/50 p-4' : 'gh-card p-5'
       "
+      [class.ring-2]="highlight()"
+      [class.ring-violet-500/60]="highlight()"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0 flex-1">
@@ -113,6 +125,7 @@ export interface LikeChange {
 export class ReviewCardComponent {
   private readonly auth = inject(AuthService);
   private readonly reviewService = inject(ReviewService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly i18n = inject(TranslationService);
 
   readonly review = input.required<Review>();
@@ -120,13 +133,17 @@ export class ReviewCardComponent {
   readonly embedded = input(false);
   /** mostra il thread di risposte (solo dove ha senso: la pagina del gioco) */
   readonly allowReplies = input(false);
+  /** evidenziata e portata in vista: chi arriva da una notifica deve vederla subito */
+  readonly highlight = input(false);
+  /** apre il thread all'arrivo (poi resta liberamente apribile e richiudibile) */
+  readonly openThread = input(false);
   /** risposte gia' note al genitore (una chiamata per tutte le card), prima di aprire il thread */
   readonly replyCount = input(0);
   // emesso solo quando il server conferma: delta +1 per un like, -1 per un unlike
   readonly likeChange = output<LikeChange>();
 
   readonly expanded = signal(false);
-  readonly repliesOpen = signal(false);
+  readonly repliesOpen = linkedSignal(() => this.openThread());
   // parte dal conteggio del genitore e poi segue le aggiunte/cancellazioni fatte nel thread
   readonly replyTotal = linkedSignal(() => this.replyCount());
   readonly username = this.auth.getUsername();
@@ -147,6 +164,12 @@ export class ReviewCardComponent {
   constructor() {
     const username = this.auth.getUsername();
     if (username) this.reviewService.loadLikedReviews(username);
+
+    afterNextRender(() => {
+      if (this.highlight()) {
+        this.host.nativeElement.scrollIntoView?.({ block: 'center' });
+      }
+    });
   }
 
   onToggleLike(): void {

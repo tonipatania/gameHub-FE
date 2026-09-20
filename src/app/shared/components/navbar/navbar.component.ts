@@ -1,6 +1,7 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { TranslationService } from '../../../core/services/translation.service';
 
 /**
@@ -35,6 +36,23 @@ import { TranslationService } from '../../../core/services/translation.service';
         @if (auth.currentUser(); as username) {
           <div class="hidden items-center gap-3 md:flex">
             <a
+              routerLink="/notifications"
+              routerLinkActive="text-violet-300"
+              class="relative rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
+              [attr.aria-label]="bellLabel()"
+              [title]="i18n.t('nav.notifications')"
+            >
+              🔔
+              @if (unread() > 0) {
+                <span
+                  data-testid="bell-badge"
+                  class="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[0.65rem] font-bold leading-none text-white"
+                >
+                  {{ badgeText() }}
+                </span>
+              }
+            </a>
+            <a
               routerLink="/settings"
               routerLinkActive="text-violet-300"
               class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white"
@@ -57,7 +75,7 @@ import { TranslationService } from '../../../core/services/translation.service';
           <button
             type="button"
             (click)="menuOpen.set(!menuOpen())"
-            class="rounded-lg p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white md:hidden"
+            class="relative rounded-lg p-2 text-slate-300 transition hover:bg-slate-800 hover:text-white md:hidden"
             [attr.aria-expanded]="menuOpen()"
             aria-controls="mobile-menu"
             [attr.aria-label]="i18n.t('nav.menu')"
@@ -65,6 +83,13 @@ import { TranslationService } from '../../../core/services/translation.service';
             <span aria-hidden="true" class="block w-6 text-center text-xl leading-none">{{
               menuOpen() ? '✕' : '☰'
             }}</span>
+            @if (unread() > 0 && !menuOpen()) {
+              <!-- sotto md la campanella e' nel menu: un puntino sul burger avvisa che c'e' altro -->
+              <span
+                data-testid="menu-dot"
+                class="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-rose-500"
+              ></span>
+            }
           </button>
         }
       </nav>
@@ -91,6 +116,21 @@ import { TranslationService } from '../../../core/services/translation.service';
               {{ username }}
             </a>
             <a
+              routerLink="/notifications"
+              routerLinkActive="bg-violet-500/20 text-violet-300"
+              (click)="closeMenu()"
+              class="flex items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-slate-800 hover:text-white"
+            >
+              {{ i18n.t('nav.notifications') }}
+              @if (unread() > 0) {
+                <span
+                  class="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold leading-none text-white"
+                >
+                  {{ badgeText() }}
+                </span>
+              }
+            </a>
+            <a
               routerLink="/settings"
               routerLinkActive="bg-violet-500/20 text-violet-300"
               (click)="closeMenu()"
@@ -114,8 +154,18 @@ import { TranslationService } from '../../../core/services/translation.service';
 export class NavbarComponent {
   readonly auth = inject(AuthService);
   readonly i18n = inject(TranslationService);
+  private readonly notifications = inject(NotificationService);
 
   readonly menuOpen = signal(false);
+
+  readonly unread = this.notifications.unreadCount;
+  // un badge a tre cifre non entra nel cerchio: oltre 99 basta dire "99+"
+  readonly badgeText = computed(() => (this.unread() > 99 ? '99+' : String(this.unread())));
+  readonly bellLabel = computed(() =>
+    this.unread() > 0
+      ? this.i18n.t('notifications.bellLabelUnread', { count: this.unread() })
+      : this.i18n.t('notifications.bellLabel'),
+  );
 
   readonly navLinks = [
     { path: '/home', labelKey: 'nav.home' },

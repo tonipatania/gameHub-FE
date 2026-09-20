@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ReviewCreate, ReviewReply } from '../models/review.model';
+import { Review, ReviewCreate, ReviewReply } from '../models/review.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
@@ -14,6 +14,11 @@ export class ReviewService {
     return this.http.post(`${environment.apiUrl}/review/gameSelected/create`, review, {
       responseType: 'text',
     });
+  }
+
+  /** Una singola recensione: la pagina del gioco ne carica solo le piu' votate. */
+  getReview(id: string): Observable<Review> {
+    return this.http.get<Review>(`${environment.apiUrl}/review/${encodeURIComponent(id)}`);
   }
 
   // l'autore della risposta e' quello del token: qui non si manda nessuno username

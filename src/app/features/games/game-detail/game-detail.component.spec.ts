@@ -36,9 +36,12 @@ const emptyPage = {
 
 describe('GameDetailComponent', () => {
   let httpMock: HttpTestingController;
+  // ?review=...&thread=1 quando si arriva da una notifica
+  let queryParams: Record<string, string> = {};
 
   beforeEach(() => {
     sessionStorage.clear();
+    queryParams = {};
 
     TestBed.configureTestingModule({
       imports: [GameDetailComponent],
@@ -48,7 +51,13 @@ describe('GameDetailComponent', () => {
         provideRouter([]),
         {
           provide: ActivatedRoute,
-          useValue: { paramMap: of(convertToParamMap({ name: 'Portal 2' })) },
+          useValue: {
+            paramMap: of(convertToParamMap({ name: 'Portal 2' })),
+            // getter: il test imposta i parametri dopo la configurazione, prima di create()
+            get snapshot() {
+              return { queryParamMap: convertToParamMap(queryParams) };
+            },
+          },
         },
       ],
     });
@@ -89,6 +98,107 @@ describe('GameDetailComponent', () => {
 
     expect(fixture.componentInstance.loading()).toBe(false);
     expect(fixture.componentInstance.game()?.name).toBe('Portal 2');
+  });
+
+  describe('arriving from a notification (?review=)', () => {
+    const embedded = {
+      id: 'r1',
+      title: 'Portal 2',
+      username: 'anna',
+      comment: 'Top',
+      userScore: 9,
+      likeCount: 5,
+    };
+    const outside = {
+      id: 'r9',
+      title: 'Portal 2',
+      username: 'toni',
+      comment: 'Mia',
+      userScore: 7,
+      likeCount: 0,
+    };
+
+    it('highlights the review when it is among the loaded ones, without fetching it', () => {
+      queryParams = { review: 'r1', thread: '1' };
+      const fixture = create();
+      flushGameLookup(gamePage({ reviews: [embedded] }));
+      fixture.detectChanges();
+      // il thread si apre da solo (?thread=1): la card lo carica
+      httpMock.expectOne((r) => r.url === `${environment.apiUrl}/review/replies`).flush([]);
+
+      httpMock.expectNone(`${environment.apiUrl}/review/r1`);
+      expect(fixture.componentInstance.pinnedReview()).toBeNull();
+      expect(fixture.componentInstance.focusReviewId).toBe('r1');
+      expect(fixture.componentInstance.openThread).toBe(true);
+    });
+
+    it('fetches and pins the review when it is not among the loaded ones', () => {
+      queryParams = { review: 'r9' };
+      const fixture = create();
+      flushGameLookup(gamePage({ reviews: [embedded] }));
+
+      httpMock.expectOne(`${environment.apiUrl}/review/r9`).flush(outside);
+      // il conteggio risposte ora include anche la recensione appuntata
+      const counts = httpMock.expectOne(
+        (r) => r.url === `${environment.apiUrl}/review/replies/counts`,
+      );
+      expect(counts.request.params.getAll('ids')).toEqual(['r1', 'r9']);
+      counts.flush({});
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.pinnedReview()?.id).toBe('r9');
+      expect((fixture.nativeElement as HTMLElement).textContent).toContain('Mia');
+      // non gonfia il conteggio "Top recensioni"
+      expect(fixture.componentInstance.reviews()).toHaveLength(1);
+    });
+
+    it('ignores a review that belongs to another game', () => {
+      queryParams = { review: 'r9' };
+      const fixture = create();
+      flushGameLookup(gamePage({ reviews: [embedded] }));
+
+      httpMock
+        .expectOne(`${environment.apiUrl}/review/r9`)
+        .flush({ ...outside, title: 'Half-Life' });
+
+      expect(fixture.componentInstance.pinnedReview()).toBeNull();
+    });
+
+    it('tells the user when the review no longer exists', () => {
+      queryParams = { review: 'gone' };
+      const info = vi
+        .spyOn(TestBed.inject(ToastService), 'info')
+        .mockImplementation(() => undefined);
+      const fixture = create();
+      flushGameLookup(gamePage({ reviews: [embedded] }));
+
+      httpMock
+        .expectOne(`${environment.apiUrl}/review/gone`)
+        .flush('nope', { status: 404, statusText: 'Not Found' });
+
+      expect(info).toHaveBeenCalled();
+      expect(fixture.componentInstance.pinnedReview()).toBeNull();
+    });
+
+    it('does nothing special without the query parameter', () => {
+      const fixture = create();
+      flushGameLookup(gamePage({ reviews: [embedded] }));
+
+      expect(fixture.componentInstance.focusReviewId).toBeNull();
+      expect(fixture.componentInstance.openThread).toBe(false);
+    });
+
+    it('keeps the pinned review in sync when it is liked', () => {
+      queryParams = { review: 'r9' };
+      const fixture = create();
+      flushGameLookup(gamePage({ reviews: [embedded] }));
+      httpMock.expectOne(`${environment.apiUrl}/review/r9`).flush(outside);
+      httpMock.expectOne((r) => r.url === `${environment.apiUrl}/review/replies/counts`).flush({});
+
+      fixture.componentInstance.onLikeChange({ reviewId: 'r9', delta: 1 });
+
+      expect(fixture.componentInstance.pinnedReview()?.likeCount).toBe(1);
+    });
   });
 
   it('leaves game as null when the backend finds nothing', () => {
