@@ -4,7 +4,13 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ActivityItem, CommunityHighlights } from '../models/activity.model';
 import { Game, GameNeo4j, Page } from '../models/game.model';
-import { SuggestedUser, UserNeo4j } from '../models/user.model';
+import {
+  Connection,
+  ConnectionStats,
+  ConnectionType,
+  SuggestedUser,
+  UserNeo4j,
+} from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -87,14 +93,19 @@ export class UserService {
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
   }
 
-  getFollowedUsersPage(username: string, page = 0, size = 20): Observable<Page<UserNeo4j>> {
+  // l'utente e' quello del token: sono sempre i "miei" seguiti / follower / reciproci
+  getConnectionsPage(type: ConnectionType, page = 0, size = 20): Observable<Page<Connection>> {
     const params = new HttpParams()
-      .set('username', username)
+      .set('type', type)
       .set('page', page.toString())
       .set('size', size.toString());
-    return this.http.get<Page<UserNeo4j>>(`${environment.apiUrl}/user/followedUser/page`, {
+    return this.http.get<Page<Connection>>(`${environment.apiUrl}/user/connections/page`, {
       params,
     });
+  }
+
+  getConnectionStats(): Observable<ConnectionStats> {
+    return this.http.get<ConnectionStats>(`${environment.apiUrl}/user/connections/stats`);
   }
 
   searchUsers(query: string, username: string): Observable<UserNeo4j[]> {

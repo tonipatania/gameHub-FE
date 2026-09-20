@@ -63,4 +63,23 @@ describe('UserCardComponent', () => {
 
     expect(emitted).toEqual(['toniplayer']);
   });
+
+  it('shows no relation chip by default', () => {
+    const fixture = create();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).not.toContain('Mutual');
+    expect(text).not.toContain('Follows you');
+  });
+
+  it('labels someone who follows the user, and someone followed back', () => {
+    const followsYou = create();
+    followsYou.componentRef.setInput('relation', 'followsYou');
+    followsYou.detectChanges();
+    expect((followsYou.nativeElement as HTMLElement).textContent).toContain('Follows you');
+
+    const mutual = create();
+    mutual.componentRef.setInput('relation', 'mutual');
+    mutual.detectChanges();
+    expect((mutual.nativeElement as HTMLElement).textContent).toContain('Mutual');
+  });
 });

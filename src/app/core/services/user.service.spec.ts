@@ -119,21 +119,34 @@ describe('UserService', () => {
     expect(result).toEqual([]);
   });
 
-  it('getFollowedUsersPage sends pagination params', () => {
-    service.getFollowedUsersPage('toni', 2, 5).subscribe();
+  it('getConnectionsPage sends the list type and pagination, never a username', () => {
+    service.getConnectionsPage('followers', 2, 5).subscribe();
 
-    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser/page`);
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/connections/page`);
+    expect(req.request.params.get('type')).toBe('followers');
     expect(req.request.params.get('page')).toBe('2');
     expect(req.request.params.get('size')).toBe('5');
+    expect(req.request.params.has('username')).toBe(false);
     req.flush({
-      content: [],
+      content: [{ id: 'u1', username: 'a', mutual: true }],
       totalPages: 1,
-      totalElements: 0,
+      totalElements: 1,
       size: 5,
       number: 2,
       first: false,
       last: true,
     });
+  });
+
+  it('getConnectionStats returns following, followers and mutual counts', () => {
+    let result: unknown;
+    service.getConnectionStats().subscribe((r) => (result = r));
+
+    httpMock
+      .expectOne(`${environment.apiUrl}/user/connections/stats`)
+      .flush({ following: 10, followers: 7, mutual: 4 });
+
+    expect(result).toEqual({ following: 10, followers: 7, mutual: 4 });
   });
 
   it('searchUsers sends query and username params', () => {

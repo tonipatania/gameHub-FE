@@ -15,7 +15,25 @@ import { TranslationService } from '../../../core/services/translation.service';
           {{ initials() }}
         </div>
         <div class="min-w-0">
-          <p class="truncate font-semibold text-white">{{ user().username }}</p>
+          <div class="flex items-center gap-2">
+            <p class="truncate font-semibold text-white">{{ user().username }}</p>
+            @if (relation() !== 'none') {
+              <span
+                class="shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide"
+                [class]="
+                  relation() === 'mutual'
+                    ? 'bg-emerald-500/15 text-emerald-300'
+                    : 'bg-violet-500/15 text-violet-300'
+                "
+              >
+                {{
+                  relation() === 'mutual'
+                    ? i18n.t('userCard.relationMutual')
+                    : i18n.t('userCard.relationFollowsYou')
+                }}
+              </span>
+            }
+          </div>
           <p class="truncate text-xs text-slate-500">{{ subtitle() }}</p>
         </div>
       </a>
@@ -38,6 +56,8 @@ export class UserCardComponent {
   readonly user = input.required<SuggestedUser>();
   readonly isFollowing = input(false);
   readonly showFollowButton = input(false);
+  /** come ci si segue: "ti segue" (solo lui), "reciproco" (entrambi), nessuna etichetta altrimenti */
+  readonly relation = input<'none' | 'followsYou' | 'mutual'>('none');
   readonly followToggle = output<string>();
 
   initials(): string {
