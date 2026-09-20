@@ -24,6 +24,16 @@ export interface Game {
   reviews?: Review[];
 }
 
+/** Gli "scaffali" della pagina Giochi: liste gia' ordinate dal backend, con game leggeri. */
+export interface GameRails {
+  /** in movimento negli ultimi 7 giorni (completato con i piu' desiderati) */
+  weekly: Game[];
+  /** molto desiderati e con un voto alto */
+  favorites: Game[];
+  /** le uscite piu' recenti */
+  latest: Game[];
+}
+
 export interface GameNeo4j {
   id: string;
   name: string;

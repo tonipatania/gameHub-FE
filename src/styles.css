@@ -93,6 +93,30 @@
     gap: 0.75rem;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
   }
+
+  /* scaffale orizzontale (GameRailComponent): si scorre con le frecce o trascinando, le card si
+     agganciano al bordo. Il padding verticale lascia spazio all'ombra e allo zoom della card in
+     hover, che altrimenti verrebbero tagliati dall'overflow. */
+  .gh-rail {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    margin-block: -0.5rem;
+    padding-block: 0.5rem;
+  }
+  .gh-rail::-webkit-scrollbar {
+    display: none;
+  }
+  /* larghezza esplicita e non solo flex-basis: un titolo lungo altrimenti allarga la card oltre
+     le altre (min-width:auto di un flex item non scende sotto il contenuto) */
+  .gh-rail-item {
+    flex: none;
+    width: min(72vw, 17rem);
+    min-width: 0;
+    scroll-snap-align: start;
+  }
 }
 
 /* Il contenuto (ToastContentComponent) disegna la card vera e propria in Tailwind:

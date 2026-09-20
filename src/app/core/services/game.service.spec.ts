@@ -81,6 +81,17 @@ describe('GameService', () => {
     req.flush([]);
   });
 
+  it('getRails returns the three rails', () => {
+    let result: unknown;
+    service.getRails().subscribe((r) => (result = r));
+
+    httpMock
+      .expectOne(`${environment.apiUrl}/game/rails`)
+      .flush({ weekly: [{ id: 'g1', name: 'A' }], favorites: [], latest: [] });
+
+    expect(result).toEqual({ weekly: [{ id: 'g1', name: 'A' }], favorites: [], latest: [] });
+  });
+
   it('getGenres returns the array as-is', () => {
     let result: string[] | undefined;
     service.getGenres().subscribe((r) => (result = r));

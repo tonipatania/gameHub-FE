@@ -70,4 +70,16 @@ describe('GameCardComponent', () => {
       encodeURIComponent('Half-Life: Alyx'),
     );
   });
+
+  it('shows the rank number on the image only when a rank is given', () => {
+    const plain = createComponent();
+    expect((plain.nativeElement as HTMLElement).querySelector('.text-5xl')).toBeNull();
+
+    const ranked = createComponent();
+    ranked.componentRef.setInput('rank', 3);
+    ranked.detectChanges();
+    expect(
+      (ranked.nativeElement as HTMLElement).querySelector('.text-5xl')?.textContent?.trim(),
+    ).toBe('3');
+  });
 });

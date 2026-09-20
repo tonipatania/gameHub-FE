@@ -72,6 +72,15 @@ import { TranslationService } from '../../../core/services/translation.service';
               {{ game().avgScore }}/10
             </span>
           }
+          @if (rank()) {
+            <!-- numero da classifica (stile "Top 10"): in basso a sinistra, sfumato sull'immagine -->
+            <span
+              class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/90 to-transparent px-3 pb-1 pt-8 text-5xl font-black leading-none text-white/95 drop-shadow"
+              aria-hidden="true"
+            >
+              {{ rank() }}
+            </span>
+          }
         </div>
         <div class="p-4">
           <h3
@@ -127,6 +136,8 @@ export class GameCardComponent {
   /** chip opzionale sotto il titolo, es. "In comune" nel profilo di un altro utente */
   readonly badge = input('');
   readonly compact = input(false);
+  /** posizione in una classifica (1, 2, 3...): mostra il numero grande sull'immagine */
+  readonly rank = input<number | null>(null);
   readonly wishlistToggle = output<string>();
 
   // prezzo assente e prezzo 0 sono entrambi "gratis": nel catalogo 16k giochi hanno Price a 0
