@@ -8,7 +8,7 @@ import { TranslationService } from '../../../core/services/translation.service';
   imports: [RouterLink],
   template: `
     <article
-      class="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 transition hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10 focus-within:border-violet-500"
+      class="group relative cursor-pointer overflow-hidden gh-card transition hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10 focus-within:border-violet-500"
     >
       @if (compact()) {
         <a [routerLink]="['/games', encodeName(game().name)]" class="flex items-center gap-3 p-3">
@@ -96,12 +96,8 @@ import { TranslationService } from '../../../core/services/translation.service';
               <button
                 type="button"
                 (click)="wishlistToggle.emit(game().name); $event.stopPropagation()"
-                class="relative z-20 rounded-lg px-3 py-1 text-xs font-medium transition"
-                [class]="
-                  inWishlist()
-                    ? 'bg-rose-500/20 text-rose-300 hover:bg-rose-500/30'
-                    : 'bg-violet-500/20 text-violet-300 hover:bg-violet-500/30'
-                "
+                class="gh-btn gh-btn-sm relative z-20"
+                [class]="inWishlist() ? 'gh-btn-danger-soft' : 'gh-btn-soft'"
               >
                 {{ inWishlist() ? i18n.t('gameCard.inWishlist') : i18n.t('gameCard.addWishlist') }}
               </button>

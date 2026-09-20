@@ -5,6 +5,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { TranslationService } from '../../../core/services/translation.service';
+import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
 import { ToastService } from '../../../core/services/toast.service';
 import {
   PASSWORD_PATTERN,
@@ -13,118 +14,91 @@ import {
 
 @Component({
   selector: 'app-reset-password',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, AuthShellComponent],
   template: `
-    <div class="flex min-h-screen items-center justify-center px-4 py-8">
-      <div class="w-full max-w-md">
-        <div class="mb-8 text-center">
-          <span class="text-5xl">🎮</span>
-          <h1 class="mt-4 text-3xl font-bold text-white">
-            Game<span class="text-violet-400">Hub</span>
-          </h1>
+    <app-auth-shell>
+      @if (done()) {
+        <div class="gh-panel p-8 text-center shadow-xl">
+          <h2 class="text-xl font-semibold text-emerald-300">
+            {{ i18n.t('auth.resetPassword.successTitle') }}
+          </h2>
+          <p class="mt-2 text-sm text-slate-400">
+            {{ i18n.t('auth.resetPassword.successMessage') }}
+          </p>
+          <a routerLink="/login" class="mt-6 gh-btn gh-btn-primary">
+            {{ i18n.t('auth.confirmEmail.goToLogin') }}
+          </a>
         </div>
+      } @else if (!token) {
+        <div class="gh-panel p-8 text-center shadow-xl">
+          <h2 class="text-xl font-semibold text-rose-300">
+            {{ i18n.t('auth.resetPassword.invalidLinkTitle') }}
+          </h2>
+          <p class="mt-2 text-sm text-slate-400">
+            {{ i18n.t('auth.resetPassword.missingToken') }}
+          </p>
+          <a routerLink="/forgot-password" class="mt-6 gh-btn gh-btn-primary">
+            {{ i18n.t('auth.resetPassword.requestNewLink') }}
+          </a>
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="gh-panel p-8 shadow-xl">
+          <h2 class="mb-6 text-xl font-semibold text-white">
+            {{ i18n.t('auth.resetPassword.heading') }}
+          </h2>
 
-        @if (done()) {
-          <div
-            class="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 text-center shadow-xl"
-          >
-            <h2 class="text-xl font-semibold text-emerald-300">
-              {{ i18n.t('auth.resetPassword.successTitle') }}
-            </h2>
-            <p class="mt-2 text-sm text-slate-400">
-              {{ i18n.t('auth.resetPassword.successMessage') }}
-            </p>
-            <a
-              routerLink="/login"
-              class="mt-6 inline-block rounded-lg bg-violet-600 px-4 py-2.5 font-medium text-white transition hover:bg-violet-500"
+          <label class="mb-4 block">
+            <span class="gh-label">{{ i18n.t('auth.resetPassword.passwordLabel') }}</span>
+            <input
+              formControlName="password"
+              type="password"
+              maxlength="32"
+              autocomplete="new-password"
+              class="gh-input"
+            />
+            <ul
+              class="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-xs"
             >
-              {{ i18n.t('auth.confirmEmail.goToLogin') }}
-            </a>
-          </div>
-        } @else if (!token) {
-          <div
-            class="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 text-center shadow-xl"
-          >
-            <h2 class="text-xl font-semibold text-rose-300">
-              {{ i18n.t('auth.resetPassword.invalidLinkTitle') }}
-            </h2>
-            <p class="mt-2 text-sm text-slate-400">
-              {{ i18n.t('auth.resetPassword.missingToken') }}
-            </p>
-            <a
-              routerLink="/forgot-password"
-              class="mt-6 inline-block rounded-lg bg-violet-600 px-4 py-2.5 font-medium text-white transition hover:bg-violet-500"
-            >
-              {{ i18n.t('auth.resetPassword.requestNewLink') }}
-            </a>
-          </div>
-        } @else {
-          <form
-            [formGroup]="form"
-            (ngSubmit)="onSubmit()"
-            class="rounded-2xl border border-slate-800 bg-slate-900/80 p-8 shadow-xl"
-          >
-            <h2 class="mb-6 text-xl font-semibold text-white">
-              {{ i18n.t('auth.resetPassword.heading') }}
-            </h2>
-
-            <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">{{
-                i18n.t('auth.resetPassword.passwordLabel')
-              }}</span>
-              <input
-                formControlName="password"
-                type="password"
-                maxlength="32"
-                autocomplete="new-password"
-                class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white outline-none focus:border-violet-500"
-              />
-              <ul
-                class="mt-2 space-y-1 rounded-lg border border-slate-700 bg-slate-800/60 p-3 text-xs"
-              >
-                @for (rule of passwordRules(); track rule.key) {
-                  <li [class]="rule.met ? 'text-emerald-400' : 'text-slate-400'">
-                    <span class="mr-1">{{ rule.met ? '✓' : '○' }}</span>
-                    {{ i18n.t(rule.key) }}
-                  </li>
-                }
-              </ul>
-            </label>
-
-            <label class="mb-6 block">
-              <span class="mb-1 block text-sm text-slate-400">{{
-                i18n.t('auth.signup.confirmPasswordLabel')
-              }}</span>
-              <input
-                formControlName="confirmPassword"
-                type="password"
-                maxlength="32"
-                autocomplete="new-password"
-                (blur)="confirmPasswordTouched.set(true)"
-                class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white outline-none focus:border-violet-500"
-              />
-              @if (confirmPasswordTouched() && form.errors?.['passwordMismatch']) {
-                <p class="mt-1 text-xs text-rose-400">
-                  {{ i18n.t('auth.signup.passwordMismatchError') }}
-                </p>
+              @for (rule of passwordRules(); track rule.key) {
+                <li [class]="rule.met ? 'text-emerald-400' : 'text-slate-400'">
+                  <span class="mr-1">{{ rule.met ? '✓' : '○' }}</span>
+                  {{ i18n.t(rule.key) }}
+                </li>
               }
-            </label>
+            </ul>
+          </label>
 
-            <button
-              type="submit"
-              [disabled]="form.invalid || loading()"
-              class="w-full rounded-lg bg-violet-600 py-2.5 font-medium text-white transition hover:bg-violet-500 disabled:opacity-50"
-            >
-              {{
-                loading()
-                  ? i18n.t('auth.resetPassword.submitLoading')
-                  : i18n.t('auth.resetPassword.submit')
-              }}
-            </button>
-          </form>
-        }
-      </div>
-    </div>
+          <label class="mb-6 block">
+            <span class="gh-label">{{ i18n.t('auth.signup.confirmPasswordLabel') }}</span>
+            <input
+              formControlName="confirmPassword"
+              type="password"
+              maxlength="32"
+              autocomplete="new-password"
+              (blur)="confirmPasswordTouched.set(true)"
+              class="gh-input"
+            />
+            @if (confirmPasswordTouched() && form.errors?.['passwordMismatch']) {
+              <p class="mt-1 text-xs text-rose-400">
+                {{ i18n.t('auth.signup.passwordMismatchError') }}
+              </p>
+            }
+          </label>
+
+          <button
+            type="submit"
+            [disabled]="form.invalid || loading()"
+            class="gh-btn gh-btn-primary w-full py-2.5"
+          >
+            {{
+              loading()
+                ? i18n.t('auth.resetPassword.submitLoading')
+                : i18n.t('auth.resetPassword.submit')
+            }}
+          </button>
+        </form>
+      }
+    </app-auth-shell>
   `,
 })
 export class ResetPasswordComponent {

@@ -7,9 +7,7 @@ import { TranslationService } from '../../../core/services/translation.service';
   selector: 'app-user-card',
   imports: [RouterLink],
   template: `
-    <article
-      class="flex items-center justify-between gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4"
-    >
+    <article class="flex items-center justify-between gap-4 gh-card p-4">
       <a [routerLink]="['/profile', user().username]" class="flex min-w-0 items-center gap-3">
         <div
           class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-cyan-500 text-sm font-bold text-white"
@@ -25,12 +23,8 @@ import { TranslationService } from '../../../core/services/translation.service';
         <button
           type="button"
           (click)="followToggle.emit(user().username)"
-          class="shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition"
-          [class]="
-            isFollowing()
-              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              : 'bg-violet-600 text-white hover:bg-violet-500'
-          "
+          class="gh-btn shrink-0"
+          [class]="isFollowing() ? 'gh-btn-muted' : 'gh-btn-primary'"
         >
           {{ isFollowing() ? i18n.t('userCard.alreadyFollowing') : i18n.t('userCard.follow') }}
         </button>

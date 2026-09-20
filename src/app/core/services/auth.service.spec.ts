@@ -72,7 +72,7 @@ describe('AuthService', () => {
   it('logout clears storage, signal and navigates to /login', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     sessionStorage.setItem('gamehub_token', 'tok123');
-    service.updateUsername('toni');
+    service.currentUser.set('toni');
 
     service.logout();
 
@@ -99,7 +99,7 @@ describe('AuthService', () => {
   it('logout still completes locally when the server-side revocation fails', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     sessionStorage.setItem('gamehub_token', 'tok123');
-    service.updateUsername('toni');
+    service.currentUser.set('toni');
 
     service.logout();
     httpMock

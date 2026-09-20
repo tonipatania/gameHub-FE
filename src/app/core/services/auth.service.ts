@@ -93,13 +93,6 @@ export class AuthService {
     return sessionStorage.getItem(TOKEN_KEY);
   }
 
-  updateUsername(username: string): void {
-    if (isPlatformBrowser(this.platformId)) {
-      sessionStorage.setItem(STORAGE_KEY, username);
-    }
-    this.currentUser.set(username);
-  }
-
   private setUser(username: string, token: string): void {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.setItem(STORAGE_KEY, username);

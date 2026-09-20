@@ -26,6 +26,12 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Client,
   },
   {
+    // come le altre pagine autenticate: prerenderizzata finirebbe dietro l'authGuard lato server,
+    // dove non c'e' sessione, e un ricaricamento porterebbe sempre al login
+    path: 'settings',
+    renderMode: RenderMode.Client,
+  },
+  {
     path: 'login',
     renderMode: RenderMode.Prerender,
   },

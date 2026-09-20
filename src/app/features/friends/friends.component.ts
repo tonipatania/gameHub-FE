@@ -4,129 +4,125 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { SuggestedUser, UserNeo4j } from '../../core/models/user.model';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { UserCardComponent } from '../../shared/components/user-card/user-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../core/services/translation.service';
 
 @Component({
   selector: 'app-friends',
-  imports: [ReactiveFormsModule, NavbarComponent, UserCardComponent, LoadingSpinnerComponent],
+  imports: [
+    ReactiveFormsModule,
+    PageLayoutComponent,
+    PageHeaderComponent,
+    PaginationComponent,
+    UserCardComponent,
+    LoadingSpinnerComponent,
+  ],
   template: `
-    <app-navbar />
-    <main class="mx-auto max-w-3xl px-4 py-8">
-      <h1 class="mb-8 text-3xl font-bold text-white">{{ i18n.t('friends.title') }}</h1>
+    <app-page-layout>
+      <app-page-header [title]="i18n.t('friends.title')" />
 
-      <section class="mb-10">
-        <h2 class="mb-4 text-xl font-semibold text-white">
-          {{ i18n.t('friends.addPeopleTitle') }}
-        </h2>
-        <input
-          [formControl]="searchControl"
-          [placeholder]="i18n.t('friends.searchPlaceholder')"
-          class="mb-4 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
-        />
-        @if (searching()) {
-          <app-loading-spinner />
-        } @else if (searchControl.value) {
-          @if (searchResults().length === 0) {
-            <p class="text-slate-400">{{ i18n.t('friends.noUsersFound') }}</p>
-          } @else {
-            <div class="space-y-3">
-              @for (user of searchResults(); track user.id) {
-                <app-user-card
-                  [user]="user"
-                  [showFollowButton]="true"
-                  [isFollowing]="isFollowing(user.username)"
-                  (followToggle)="isFollowing(user.username) ? unfollow($event) : follow($event)"
-                />
+      <div class="grid items-start gap-x-10 gap-y-2 xl:grid-cols-2">
+        <div class="min-w-0">
+          <section class="mb-10">
+            <h2 class="gh-section-title mb-4">
+              {{ i18n.t('friends.addPeopleTitle') }}
+            </h2>
+            <input
+              [formControl]="searchControl"
+              [placeholder]="i18n.t('friends.searchPlaceholder')"
+              class="gh-input mb-4"
+            />
+            @if (searching()) {
+              <app-loading-spinner />
+            } @else if (searchControl.value) {
+              @if (searchResults().length === 0) {
+                <p class="text-slate-400">{{ i18n.t('friends.noUsersFound') }}</p>
+              } @else {
+                <div class="gh-user-grid">
+                  @for (user of searchResults(); track user.id) {
+                    <app-user-card
+                      [user]="user"
+                      [showFollowButton]="true"
+                      [isFollowing]="isFollowing(user.username)"
+                      (followToggle)="
+                        isFollowing(user.username) ? unfollow($event) : follow($event)
+                      "
+                    />
+                  }
+                </div>
               }
-            </div>
-          }
-        }
-      </section>
-
-      <section class="mb-10">
-        <h2 class="mb-4 text-xl font-semibold text-white">
-          {{ i18n.t('friends.suggestedTitle') }}
-        </h2>
-        @if (suggestionsLoading()) {
-          <app-loading-spinner />
-        } @else if (suggestedFriends().length === 0) {
-          <p class="text-slate-400">{{ i18n.t('friends.noSuggestions') }}</p>
-        } @else {
-          <div class="space-y-3">
-            @for (user of suggestedFriends(); track user.id) {
-              <app-user-card
-                [user]="user"
-                [showFollowButton]="true"
-                [isFollowing]="isFollowing(user.username)"
-                (followToggle)="isFollowing(user.username) ? unfollow($event) : follow($event)"
-              />
             }
-          </div>
-        }
-      </section>
+          </section>
 
-      <div #followingTopAnchor></div>
+          <section class="mb-10">
+            <h2 class="gh-section-title mb-4">
+              {{ i18n.t('friends.suggestedTitle') }}
+            </h2>
+            @if (suggestionsLoading()) {
+              <app-loading-spinner />
+            } @else if (suggestedFriends().length === 0) {
+              <p class="text-slate-400">{{ i18n.t('friends.noSuggestions') }}</p>
+            } @else {
+              <div class="gh-user-grid">
+                @for (user of suggestedFriends(); track user.id) {
+                  <app-user-card
+                    [user]="user"
+                    [showFollowButton]="true"
+                    [isFollowing]="isFollowing(user.username)"
+                    (followToggle)="isFollowing(user.username) ? unfollow($event) : follow($event)"
+                  />
+                }
+              </div>
+            }
+          </section>
+        </div>
 
-      @if (loading() && followingPage().length === 0) {
-        <app-loading-spinner />
-      } @else {
-        <section class="mb-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">
-            {{ i18n.t('friends.followingTitle') }}
-          </h2>
-          @if (followingPage().length === 0) {
-            <p class="text-slate-400">{{ i18n.t('friends.notFollowingAnyone') }}</p>
+        <div class="min-w-0">
+          <div #followingTopAnchor></div>
+
+          @if (loading() && followingPage().length === 0) {
+            <app-loading-spinner />
           } @else {
-            <div
-              class="space-y-3 transition-opacity duration-150"
-              [class.opacity-50]="navigatingFollowing()"
-              [class.pointer-events-none]="navigatingFollowing()"
-            >
-              @for (user of followingPage(); track user.id) {
-                <app-user-card
-                  [user]="user"
-                  [showFollowButton]="true"
-                  [isFollowing]="true"
-                  (followToggle)="unfollow($event)"
+            <section class="mb-10">
+              <h2 class="gh-section-title mb-4">
+                {{ i18n.t('friends.followingTitle') }}
+              </h2>
+              @if (followingPage().length === 0) {
+                <p class="text-slate-400">{{ i18n.t('friends.notFollowingAnyone') }}</p>
+              } @else {
+                <div
+                  class="gh-user-grid transition-opacity duration-150"
+                  [class.opacity-50]="navigatingFollowing()"
+                  [class.pointer-events-none]="navigatingFollowing()"
+                >
+                  @for (user of followingPage(); track user.id) {
+                    <app-user-card
+                      [user]="user"
+                      [showFollowButton]="true"
+                      [isFollowing]="true"
+                      (followToggle)="unfollow($event)"
+                    />
+                  }
+                </div>
+
+                <app-pagination
+                  class="mt-6"
+                  [page]="followingPageIndex()"
+                  [totalPages]="followingTotalPages()"
+                  [disabled]="navigatingFollowing()"
+                  (prev)="prevFollowingPage()"
+                  (next)="nextFollowingPage()"
                 />
               }
-            </div>
-
-            <div class="mt-6 flex items-center justify-center gap-4">
-              <button
-                type="button"
-                (click)="prevFollowingPage()"
-                [disabled]="followingPageIndex() === 0 || navigatingFollowing()"
-                class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {{ i18n.t('common.prev') }}
-              </button>
-              <span class="text-sm text-slate-400">
-                {{
-                  i18n.t('common.pageOf', {
-                    current: followingPageIndex() + 1,
-                    total: followingTotalPages(),
-                  })
-                }}
-              </span>
-              <button
-                type="button"
-                (click)="nextFollowingPage()"
-                [disabled]="
-                  followingPageIndex() >= followingTotalPages() - 1 || navigatingFollowing()
-                "
-                class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {{ i18n.t('common.next') }}
-              </button>
-            </div>
+            </section>
           }
-        </section>
-      }
-    </main>
+        </div>
+      </div>
+    </app-page-layout>
   `,
 })
 export class FriendsComponent implements OnInit {

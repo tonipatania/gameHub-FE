@@ -5,6 +5,96 @@
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Design system di GameHub: ogni pagina e componente attinge da queste classi, cosi bottoni,
+   campi, card, margini e titoli sono identici ovunque e si cambiano in un punto solo. Stanno nel
+   layer "components" cosi le utility Tailwind (w-full, mt-4, ...) possono sempre sovrascriverle. */
+@layer components {
+  /* margini laterali della pagina: gli stessi per navbar e contenuto, a tutta larghezza */
+  .gh-gutter {
+    @apply w-full px-4 sm:px-6 lg:px-8 2xl:px-12;
+  }
+
+  /* tipografia */
+  .gh-page-title {
+    @apply text-2xl font-bold text-white sm:text-3xl;
+  }
+  .gh-section-title {
+    @apply text-xl font-semibold text-white;
+  }
+  .gh-eyebrow {
+    @apply text-xs uppercase tracking-wide text-slate-500;
+  }
+  .gh-label {
+    @apply mb-1 block text-sm text-slate-400;
+  }
+  .gh-link {
+    @apply text-violet-400 transition hover:text-violet-300;
+  }
+
+  /* superfici */
+  .gh-card {
+    @apply rounded-xl border border-slate-800 bg-slate-900/80;
+  }
+  .gh-panel {
+    @apply rounded-2xl border border-slate-800 bg-slate-900/80;
+  }
+  .gh-tile {
+    @apply rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3;
+  }
+
+  /* campi */
+  .gh-input {
+    @apply w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white outline-none transition focus:border-violet-500;
+  }
+
+  /* bottoni: .gh-btn da solo e' la base, il colore lo dà una delle varianti */
+  .gh-btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .gh-btn-sm {
+    @apply px-3 py-1 text-xs;
+  }
+  .gh-btn-primary {
+    @apply bg-violet-600 text-white hover:bg-violet-500;
+  }
+  .gh-btn-outline {
+    @apply border border-slate-700 text-slate-300 hover:border-slate-600 hover:text-white;
+  }
+  .gh-btn-muted {
+    @apply bg-slate-800 text-slate-300 hover:bg-slate-700;
+  }
+  .gh-btn-soft {
+    @apply bg-violet-500/20 text-violet-300 hover:bg-violet-500/30;
+  }
+  .gh-btn-danger-soft {
+    @apply bg-rose-500/20 text-rose-300 hover:bg-rose-500/30;
+  }
+
+  /* selettore a segmenti (ordinamenti, filtri) */
+  .gh-segmented {
+    @apply flex gap-1 rounded-lg border border-slate-800 bg-slate-900/60 p-1;
+  }
+  .gh-segment {
+    @apply cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium text-slate-400 transition hover:text-white disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .gh-segment-active {
+    @apply bg-violet-600 text-white hover:text-white;
+  }
+
+  /* griglie che riempiono lo spazio: le colonne aumentano da sole con la larghezza dello schermo,
+     senza dover elencare un breakpoint per ogni pagina */
+  .gh-game-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  }
+  .gh-user-grid {
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+  }
+}
+
 /* Il contenuto (ToastContentComponent) disegna la card vera e propria in Tailwind:
    qui si spoglia il chrome di default di MatSnackBar (sfondo, ombra, padding, min-width)
    cosi' resta solo l'animazione nativa di Material (scale+fade in/out). */
@@ -27,6 +117,20 @@ body {
   background-color: #020617;
   color: #e2e8f0;
   font-family: var(--font-sans);
+}
+
+/* Lo spazio della scrollbar e' sempre riservato: senza, le pagine lunghe (Giochi) hanno una
+   scrollbar che restringe la larghezza utile di ~8px e fa slittare toolbar e contenuto rispetto
+   alle pagine corte (Impostazioni), che non ce l'hanno. */
+html {
+  scrollbar-gutter: stable;
+}
+
+/* browser senza scrollbar-gutter: la scrollbar resta sempre visibile, con lo stesso effetto */
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
 }
 
 * {

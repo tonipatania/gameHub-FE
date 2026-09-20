@@ -14,14 +14,15 @@ export interface LikeChange {
   selector: 'app-review-card',
   imports: [RouterLink],
   template: `
-    <article class="rounded-xl border border-slate-800 bg-slate-900/80 p-5">
+    <article
+      [class]="
+        embedded() ? 'rounded-lg border border-slate-800 bg-slate-950/50 p-4' : 'gh-card p-5'
+      "
+    >
       <div class="flex items-start justify-between gap-4">
         <div class="min-w-0 flex-1">
           <div class="flex flex-wrap items-center gap-2">
-            <a
-              [routerLink]="['/profile', review().username]"
-              class="font-semibold text-violet-400 hover:text-violet-300"
-            >
+            <a [routerLink]="['/profile', review().username]" class="font-semibold gh-link">
               {{ review().username }}
             </a>
             <span class="text-slate-600">·</span>
@@ -79,6 +80,8 @@ export class ReviewCardComponent {
   readonly i18n = inject(TranslationService);
 
   readonly review = input.required<Review>();
+  /** annidata in un'altra card (es. un post del feed): bordo e sfondo piu' leggeri */
+  readonly embedded = input(false);
   // emesso solo quando il server conferma: delta +1 per un like, -1 per un unlike
   readonly likeChange = output<LikeChange>();
 

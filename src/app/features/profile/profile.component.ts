@@ -1,32 +1,30 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { UserService } from '../../core/services/user.service';
 import { Game, Page } from '../../core/models/game.model';
 import { UserNeo4j } from '../../core/models/user.model';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
+import { PaginationComponent } from '../../shared/components/pagination/pagination.component';
 import { BackButtonComponent } from '../../shared/components/back-button/back-button.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../core/services/translation.service';
-import { ToastService } from '../../core/services/toast.service';
 
 type WishlistSortKey = 'name' | 'price' | 'release';
 
 @Component({
   selector: 'app-profile',
   imports: [
-    ReactiveFormsModule,
-    NavbarComponent,
+    PageLayoutComponent,
+    PaginationComponent,
     BackButtonComponent,
     GameCardComponent,
     LoadingSpinnerComponent,
   ],
   template: `
-    <app-navbar />
-    <main class="mx-auto max-w-5xl px-4 py-8">
+    <app-page-layout>
       <app-back-button />
       @if (loading()) {
         <app-loading-spinner />
@@ -40,69 +38,45 @@ type WishlistSortKey = 'name' | 'price' | 'release';
             {{ user()!.username.slice(0, 2).toUpperCase() }}
           </div>
           <div>
-            <h1 class="text-3xl font-bold text-white">{{ user()!.username }}</h1>
+            <h1 class="gh-page-title break-all">{{ user()!.username }}</h1>
             <p class="text-slate-400">{{ i18n.t('profile.subtitle') }}</p>
           </div>
         </div>
 
-        @if (isOwnProfile()) {
-          <section class="mb-8 rounded-xl border border-slate-800 bg-slate-900/80 p-6">
-            <h2 class="mb-4 text-lg font-semibold text-white">
-              {{ i18n.t('profile.editUsernameTitle') }}
-            </h2>
-            <form [formGroup]="usernameForm" (ngSubmit)="updateUsername()" class="flex gap-3">
-              <input
-                formControlName="newUsername"
-                class="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
-                [placeholder]="i18n.t('profile.newUsernamePlaceholder')"
-              />
-              <button
-                type="submit"
-                [disabled]="usernameForm.invalid"
-                class="rounded-lg bg-violet-600 px-4 py-2 text-sm text-white hover:bg-violet-500 disabled:opacity-50"
-              >
-                {{ i18n.t('profile.updateButton') }}
-              </button>
-            </form>
-          </section>
-        } @else {
+        @if (!isOwnProfile()) {
           <button
             type="button"
             (click)="toggleFollow()"
-            class="mb-8 rounded-lg px-6 py-2 text-sm font-medium transition"
-            [class]="
-              isFollowing()
-                ? 'bg-slate-800 text-slate-300'
-                : 'bg-violet-600 text-white hover:bg-violet-500'
-            "
+            class="gh-btn mb-8 px-6"
+            [class]="isFollowing() ? 'gh-btn-muted' : 'gh-btn-primary'"
           >
             {{ isFollowing() ? i18n.t('profile.unfollowButton') : i18n.t('profile.followButton') }}
           </button>
         }
 
         <section>
-          <h2 class="mb-4 text-xl font-semibold text-white">
+          <h2 class="gh-section-title mb-4">
             {{ i18n.t('profile.wishlistTitle') }}
           </h2>
 
           @if (wishlistTotal() > 0) {
-            <dl class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                <dt class="text-xs uppercase tracking-wide text-slate-500">
+            <dl class="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:max-w-3xl">
+              <div class="gh-tile">
+                <dt class="gh-eyebrow">
                   {{ i18n.t('profile.statsGames') }}
                 </dt>
                 <dd class="mt-1 text-2xl font-bold text-white">{{ wishlistTotal() }}</dd>
               </div>
               @if (!isOwnProfile()) {
-                <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">
+                <div class="gh-tile">
+                  <dt class="gh-eyebrow">
                     {{ i18n.t('profile.statsCommon') }}
                   </dt>
                   <dd class="mt-1 text-2xl font-bold text-violet-300">{{ commonCount() }}</dd>
                 </div>
               }
-              <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-                <dt class="text-xs uppercase tracking-wide text-slate-500">
+              <div class="gh-tile">
+                <dt class="gh-eyebrow">
                   {{ i18n.t('profile.statsPage') }}
                 </dt>
                 <dd class="mt-1 text-2xl font-bold text-white">
@@ -117,15 +91,13 @@ type WishlistSortKey = 'name' | 'price' | 'release';
           } @else {
             <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
               @if (!isOwnProfile() && commonCount() > 0) {
-                <div class="flex gap-1 rounded-lg border border-slate-800 bg-slate-900/60 p-1">
+                <div class="gh-segmented">
                   <button
                     type="button"
                     (click)="setOnlyCommon(false)"
                     [disabled]="navigatingWishlist()"
-                    class="cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-50"
-                    [class]="
-                      onlyCommon() ? 'text-slate-400 hover:text-white' : 'bg-violet-600 text-white'
-                    "
+                    class="gh-segment"
+                    [class.gh-segment-active]="!onlyCommon()"
                   >
                     {{ i18n.t('profile.allTab', { count: wishlistTotalAll() }) }}
                   </button>
@@ -133,10 +105,8 @@ type WishlistSortKey = 'name' | 'price' | 'release';
                     type="button"
                     (click)="setOnlyCommon(true)"
                     [disabled]="navigatingWishlist()"
-                    class="cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-50"
-                    [class]="
-                      onlyCommon() ? 'bg-violet-600 text-white' : 'text-slate-400 hover:text-white'
-                    "
+                    class="gh-segment"
+                    [class.gh-segment-active]="onlyCommon()"
                   >
                     {{ i18n.t('profile.onlyCommonTab', { count: commonCount() }) }}
                   </button>
@@ -144,18 +114,14 @@ type WishlistSortKey = 'name' | 'price' | 'release';
               } @else {
                 <span class="text-sm text-slate-400">{{ i18n.t('profile.sortByLabel') }}</span>
               }
-              <div class="flex gap-1 rounded-lg border border-slate-800 bg-slate-900/60 p-1">
+              <div class="gh-segmented">
                 @for (option of sortOptions; track option.key) {
                   <button
                     type="button"
                     (click)="changeSort(option.key)"
                     [disabled]="navigatingWishlist()"
-                    class="cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition disabled:opacity-50"
-                    [class]="
-                      wishlistSort() === option.key
-                        ? 'bg-violet-600 text-white'
-                        : 'text-slate-400 hover:text-white'
-                    "
+                    class="gh-segment"
+                    [class.gh-segment-active]="wishlistSort() === option.key"
                   >
                     {{ i18n.t(option.labelKey) }}
                   </button>
@@ -163,7 +129,7 @@ type WishlistSortKey = 'name' | 'price' | 'release';
               </div>
             </div>
 
-            <div class="grid gap-5 sm:grid-cols-2">
+            <div class="gh-game-grid">
               @for (game of wishlist(); track game.id) {
                 <app-game-card
                   [game]="game"
@@ -174,47 +140,25 @@ type WishlistSortKey = 'name' | 'price' | 'release';
             </div>
 
             @if (wishlistTotalPages() > 1) {
-              <div class="mt-6 flex items-center justify-center gap-4">
-                <button
-                  type="button"
-                  (click)="prevWishlistPage()"
-                  [disabled]="wishlistPageIndex() === 0 || navigatingWishlist()"
-                  class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {{ i18n.t('common.prev') }}
-                </button>
-                <span class="text-sm text-slate-400">
-                  {{
-                    i18n.t('profile.pageOfShort', {
-                      current: wishlistPageIndex() + 1,
-                      total: wishlistTotalPages(),
-                    })
-                  }}
-                </span>
-                <button
-                  type="button"
-                  (click)="nextWishlistPage()"
-                  [disabled]="
-                    wishlistPageIndex() >= wishlistTotalPages() - 1 || navigatingWishlist()
-                  "
-                  class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {{ i18n.t('common.next') }}
-                </button>
-              </div>
+              <app-pagination
+                class="mt-6"
+                [page]="wishlistPageIndex()"
+                [totalPages]="wishlistTotalPages()"
+                [disabled]="navigatingWishlist()"
+                (prev)="prevWishlistPage()"
+                (next)="nextWishlistPage()"
+              />
             }
           }
         </section>
       }
-    </main>
+    </app-page-layout>
   `,
 })
 export class ProfileComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
   private readonly userService = inject(UserService);
-  private readonly fb = inject(FormBuilder);
-  private readonly toast = inject(ToastService);
   readonly i18n = inject(TranslationService);
 
   readonly loading = signal(true);
@@ -261,10 +205,6 @@ export class ProfileComponent implements OnInit {
     this.loadWishlistPage(0);
   }
 
-  readonly usernameForm = this.fb.nonNullable.group({
-    newUsername: ['', Validators.required],
-  });
-
   private profileUsername = '';
 
   ngOnInit(): void {
@@ -280,26 +220,6 @@ export class ProfileComponent implements OnInit {
 
   encodeName(name: string): string {
     return encodeURIComponent(name);
-  }
-
-  updateUsername(): void {
-    const current = this.auth.getUsername();
-    if (!current || this.usernameForm.invalid) return;
-
-    const newUsername = this.usernameForm.getRawValue().newUsername;
-    this.userService.updateUsername(current, newUsername).subscribe({
-      next: () => {
-        this.toast.success(this.i18n.t('profile.usernameUpdated'));
-        this.profileUsername = newUsername;
-        this.auth.updateUsername(newUsername);
-        this.loadProfile();
-      },
-      error: (err) => {
-        this.toast.error(
-          typeof err.error === 'string' ? err.error : this.i18n.t('profile.updateError'),
-        );
-      },
-    });
   }
 
   toggleFollow(): void {

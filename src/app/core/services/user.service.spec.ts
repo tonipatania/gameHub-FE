@@ -174,13 +174,37 @@ describe('UserService', () => {
     req.flush('unfollowed');
   });
 
-  it('updateUsername sends a PATCH with username/newUsername params', () => {
-    service.updateUsername('toni', 'toni2').subscribe();
+  it('getFriendsActivity requests a page without sending a username', () => {
+    service.getFriendsActivity(2, 10).subscribe();
 
-    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/updateUser`);
-    expect(req.request.method).toBe('PATCH');
-    expect(req.request.params.get('username')).toBe('toni');
-    expect(req.request.params.get('newUsername')).toBe('toni2');
-    req.flush('updated');
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/activity/friends`);
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('page')).toBe('2');
+    expect(req.request.params.get('size')).toBe('10');
+    // l'utente e' quello del token: un parametro username non deve piu' viaggiare
+    expect(req.request.params.has('username')).toBe(false);
+    req.flush({ content: [], last: true });
+  });
+
+  it('markActivitySeen POSTs the ISO instant as upTo', () => {
+    service.markActivitySeen('2026-09-20T10:15:30.123Z').subscribe();
+
+    const req = httpMock.expectOne(
+      (r) => r.url === `${environment.apiUrl}/user/activity/friends/seen`,
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.params.get('upTo')).toBe('2026-09-20T10:15:30.123Z');
+    req.flush(null, { status: 204, statusText: 'No Content' });
+  });
+
+  it('getCommunityHighlights returns the trending reviews and hot games', () => {
+    let result: unknown;
+    service.getCommunityHighlights().subscribe((r) => (result = r));
+
+    httpMock
+      .expectOne(`${environment.apiUrl}/user/community/highlights`)
+      .flush({ trendingReviews: [], hotGames: [] });
+
+    expect(result).toEqual({ trendingReviews: [], hotGames: [] });
   });
 });

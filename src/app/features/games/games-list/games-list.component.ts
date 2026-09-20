@@ -5,34 +5,38 @@ import { AuthService } from '../../../core/services/auth.service';
 import { GameService } from '../../../core/services/game.service';
 import { UserService } from '../../../core/services/user.service';
 import { Game } from '../../../core/models/game.model';
-import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { GameCardComponent } from '../../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-games',
-  imports: [ReactiveFormsModule, NavbarComponent, GameCardComponent, LoadingSpinnerComponent],
+  imports: [
+    ReactiveFormsModule,
+    PageLayoutComponent,
+    PageHeaderComponent,
+    PaginationComponent,
+    GameCardComponent,
+    LoadingSpinnerComponent,
+  ],
   template: `
-    <app-navbar />
-    <main class="mx-auto max-w-7xl px-4 py-8">
-      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-white">{{ i18n.t('games.title') }}</h1>
-          <p class="mt-1 text-slate-400">{{ i18n.t('games.subtitle') }}</p>
-        </div>
-        <form [formGroup]="filterForm" class="flex flex-wrap gap-3">
+    <app-page-layout>
+      <app-page-header [title]="i18n.t('games.title')" [subtitle]="i18n.t('games.subtitle')">
+        <form [formGroup]="filterForm" class="flex w-full flex-wrap gap-3 sm:w-auto">
           <input
             formControlName="name"
             [placeholder]="i18n.t('games.searchPlaceholder')"
-            class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
+            class="gh-input min-w-0 flex-1 sm:w-72 sm:flex-none"
           />
 
           <div class="relative">
             <button
               type="button"
               (click)="genresMenuOpen.set(!genresMenuOpen())"
-              class="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-white outline-none focus:border-violet-500"
+              class="gh-input flex w-auto cursor-pointer items-center gap-2"
             >
               @if (selectedGenres().size === 0) {
                 {{ i18n.t('games.genresLabel') }}
@@ -69,7 +73,7 @@ import { TranslationService } from '../../../core/services/translation.service';
             }
           </div>
         </form>
-      </div>
+      </app-page-header>
 
       <div #topAnchor></div>
 
@@ -79,7 +83,7 @@ import { TranslationService } from '../../../core/services/translation.service';
         <p class="text-center text-slate-400">{{ i18n.t('games.noGamesFound') }}</p>
       } @else {
         <div
-          class="grid gap-6 transition-opacity duration-150 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          class="gh-game-grid transition-opacity duration-150"
           [class.opacity-50]="navigating()"
           [class.pointer-events-none]="navigating()"
         >
@@ -93,29 +97,16 @@ import { TranslationService } from '../../../core/services/translation.service';
           }
         </div>
 
-        <div class="mt-8 flex items-center justify-center gap-4">
-          <button
-            type="button"
-            (click)="prevPage()"
-            [disabled]="currentPage() === 0 || navigating()"
-            class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {{ i18n.t('common.prev') }}
-          </button>
-          <span class="text-sm text-slate-400">
-            {{ i18n.t('common.pageOf', { current: currentPage() + 1, total: totalPages() }) }}
-          </span>
-          <button
-            type="button"
-            (click)="nextPage()"
-            [disabled]="currentPage() >= totalPages() - 1 || navigating()"
-            class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {{ i18n.t('common.next') }}
-          </button>
-        </div>
+        <app-pagination
+          class="mt-8"
+          [page]="currentPage()"
+          [totalPages]="totalPages()"
+          [disabled]="navigating()"
+          (prev)="prevPage()"
+          (next)="nextPage()"
+        />
       }
-    </main>
+    </app-page-layout>
   `,
 })
 export class GamesComponent implements OnInit {

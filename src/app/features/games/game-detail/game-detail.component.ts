@@ -7,7 +7,7 @@ import { ReviewService } from '../../../core/services/review.service';
 import { UserService } from '../../../core/services/user.service';
 import { Game } from '../../../core/models/game.model';
 import { Review } from '../../../core/models/review.model';
-import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { BackButtonComponent } from '../../../shared/components/back-button/back-button.component';
 import {
   LikeChange,
@@ -21,14 +21,13 @@ import { ToastService } from '../../../core/services/toast.service';
   selector: 'app-game-detail',
   imports: [
     ReactiveFormsModule,
-    NavbarComponent,
+    PageLayoutComponent,
     BackButtonComponent,
     ReviewCardComponent,
     LoadingSpinnerComponent,
   ],
   template: `
-    <app-navbar />
-    <main class="mx-auto max-w-5xl px-4 py-8">
+    <app-page-layout>
       <app-back-button fallback="/games" />
       @if (loading()) {
         <app-loading-spinner />
@@ -36,145 +35,133 @@ import { ToastService } from '../../../core/services/toast.service';
         <p class="text-center text-slate-400">{{ i18n.t('gameDetail.notFound') }}</p>
       } @else {
         @let g = game()!;
-        <div class="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/80">
-          @if (g.url?.headerImage) {
-            <div class="aspect-[21/9] overflow-hidden">
-              <img [src]="g.url!.headerImage" [alt]="g.name" class="h-full w-full object-cover" />
-            </div>
-          }
-          <div class="p-6 md:p-8">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <h1 class="text-3xl font-bold text-white">{{ g.name }}</h1>
-                @if (g.genres) {
-                  <p class="mt-2 text-violet-400">{{ g.genres }}</p>
-                }
+        <div class="grid items-start gap-8 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+          <div class="gh-panel overflow-hidden">
+            @if (g.url?.headerImage) {
+              <div class="aspect-[21/9] overflow-hidden">
+                <img [src]="g.url!.headerImage" [alt]="g.name" class="h-full w-full object-cover" />
               </div>
-              <div class="flex items-center gap-3">
-                @if (g.avgScore) {
-                  <span
-                    class="rounded-xl bg-emerald-500/20 px-4 py-2 text-lg font-bold text-emerald-400"
-                  >
-                    {{ g.avgScore }}/10
-                  </span>
-                }
-                <button
-                  type="button"
-                  (click)="toggleWishlist()"
-                  class="rounded-lg px-4 py-2 text-sm font-medium transition"
-                  [class]="
-                    inWishlist()
-                      ? 'bg-rose-500/20 text-rose-300'
-                      : 'bg-violet-600 text-white hover:bg-violet-500'
-                  "
-                >
-                  {{
-                    inWishlist()
-                      ? i18n.t('gameDetail.inWishlist')
-                      : i18n.t('gameDetail.addToWishlist')
-                  }}
-                </button>
-              </div>
-            </div>
-
-            @if (g.aboutTheGame) {
-              <p class="mt-6 text-slate-300 leading-relaxed">{{ g.aboutTheGame }}</p>
             }
+            <div class="p-6 md:p-8">
+              <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h1 class="gh-page-title">{{ g.name }}</h1>
+                  @if (g.genres) {
+                    <p class="mt-2 text-violet-400">{{ g.genres }}</p>
+                  }
+                </div>
+                <div class="flex items-center gap-3">
+                  @if (g.avgScore) {
+                    <span
+                      class="rounded-xl bg-emerald-500/20 px-4 py-2 text-lg font-bold text-emerald-400"
+                    >
+                      {{ g.avgScore }}/10
+                    </span>
+                  }
+                  <button
+                    type="button"
+                    (click)="toggleWishlist()"
+                    class="gh-btn"
+                    [class]="inWishlist() ? 'gh-btn-danger-soft' : 'gh-btn-primary'"
+                  >
+                    {{
+                      inWishlist()
+                        ? i18n.t('gameDetail.inWishlist')
+                        : i18n.t('gameDetail.addToWishlist')
+                    }}
+                  </button>
+                </div>
+              </div>
 
-            <dl class="mt-6 grid gap-4 sm:grid-cols-2">
-              @if (g.developers) {
-                <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">
-                    {{ i18n.t('gameDetail.developers') }}
-                  </dt>
-                  <dd class="text-slate-300">{{ g.developers }}</dd>
+              @if (g.aboutTheGame) {
+                <p class="mt-6 text-slate-300 leading-relaxed">{{ g.aboutTheGame }}</p>
+              }
+
+              <dl class="mt-6 grid gap-4 sm:grid-cols-2">
+                @if (g.developers) {
+                  <div>
+                    <dt class="gh-eyebrow">
+                      {{ i18n.t('gameDetail.developers') }}
+                    </dt>
+                    <dd class="text-slate-300">{{ g.developers }}</dd>
+                  </div>
+                }
+                @if (g.publishers) {
+                  <div>
+                    <dt class="gh-eyebrow">
+                      {{ i18n.t('gameDetail.publisher') }}
+                    </dt>
+                    <dd class="text-slate-300">{{ g.publishers }}</dd>
+                  </div>
+                }
+                @if (g.releaseDate) {
+                  <div>
+                    <dt class="gh-eyebrow">
+                      {{ i18n.t('gameDetail.releaseDate') }}
+                    </dt>
+                    <dd class="text-slate-300">{{ g.releaseDate }}</dd>
+                  </div>
+                }
+                @if (g.price != null) {
+                  <div>
+                    <dt class="gh-eyebrow">
+                      {{ i18n.t('gameDetail.price') }}
+                    </dt>
+                    <dd class="text-slate-300">{{ g.price }} €</dd>
+                  </div>
+                }
+              </dl>
+            </div>
+          </div>
+
+          <div class="min-w-0 space-y-10">
+            <section>
+              <h2 class="gh-section-title mb-4">
+                {{ i18n.t('gameDetail.writeReviewTitle') }}
+              </h2>
+              <form [formGroup]="reviewForm" (ngSubmit)="submitReview()" class="gh-card p-6">
+                <label class="mb-4 block">
+                  <span class="gh-label">{{ i18n.t('gameDetail.commentLabel') }}</span>
+                  <textarea formControlName="comment" rows="3" class="gh-input"></textarea>
+                </label>
+                <label class="mb-4 block">
+                  <span class="gh-label">{{ i18n.t('gameDetail.scoreLabel') }}</span>
+                  <input
+                    formControlName="userScore"
+                    type="number"
+                    min="1"
+                    max="10"
+                    class="gh-input w-24"
+                  />
+                </label>
+                <button
+                  type="submit"
+                  [disabled]="reviewForm.invalid || submittingReview()"
+                  class="gh-btn gh-btn-primary px-6"
+                >
+                  {{ i18n.t('gameDetail.publishReview') }}
+                </button>
+              </form>
+            </section>
+
+            <section>
+              <h2 class="gh-section-title mb-4">
+                {{ i18n.t('gameDetail.topReviewsTitle', { count: reviews().length }) }}
+              </h2>
+              @if (reviews().length === 0) {
+                <p class="text-slate-400">{{ i18n.t('gameDetail.noReviews') }}</p>
+              } @else {
+                <div class="space-y-4">
+                  @for (review of reviews(); track review.id) {
+                    <app-review-card [review]="review" (likeChange)="onLikeChange($event)" />
+                  }
                 </div>
               }
-              @if (g.publishers) {
-                <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">
-                    {{ i18n.t('gameDetail.publisher') }}
-                  </dt>
-                  <dd class="text-slate-300">{{ g.publishers }}</dd>
-                </div>
-              }
-              @if (g.releaseDate) {
-                <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">
-                    {{ i18n.t('gameDetail.releaseDate') }}
-                  </dt>
-                  <dd class="text-slate-300">{{ g.releaseDate }}</dd>
-                </div>
-              }
-              @if (g.price != null) {
-                <div>
-                  <dt class="text-xs uppercase tracking-wide text-slate-500">
-                    {{ i18n.t('gameDetail.price') }}
-                  </dt>
-                  <dd class="text-slate-300">{{ g.price }} €</dd>
-                </div>
-              }
-            </dl>
+            </section>
           </div>
         </div>
-
-        <section class="mt-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">
-            {{ i18n.t('gameDetail.writeReviewTitle') }}
-          </h2>
-          <form
-            [formGroup]="reviewForm"
-            (ngSubmit)="submitReview()"
-            class="rounded-xl border border-slate-800 bg-slate-900/80 p-6"
-          >
-            <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">{{
-                i18n.t('gameDetail.commentLabel')
-              }}</span>
-              <textarea
-                formControlName="comment"
-                rows="3"
-                class="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
-              ></textarea>
-            </label>
-            <label class="mb-4 block">
-              <span class="mb-1 block text-sm text-slate-400">{{
-                i18n.t('gameDetail.scoreLabel')
-              }}</span>
-              <input
-                formControlName="userScore"
-                type="number"
-                min="1"
-                max="10"
-                class="w-24 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
-              />
-            </label>
-            <button
-              type="submit"
-              [disabled]="reviewForm.invalid || submittingReview()"
-              class="rounded-lg bg-violet-600 px-6 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
-            >
-              {{ i18n.t('gameDetail.publishReview') }}
-            </button>
-          </form>
-        </section>
-
-        <section class="mt-10">
-          <h2 class="mb-4 text-xl font-semibold text-white">
-            {{ i18n.t('gameDetail.topReviewsTitle', { count: reviews().length }) }}
-          </h2>
-          @if (reviews().length === 0) {
-            <p class="text-slate-400">{{ i18n.t('gameDetail.noReviews') }}</p>
-          } @else {
-            <div class="space-y-4">
-              @for (review of reviews(); track review.id) {
-                <app-review-card [review]="review" (likeChange)="onLikeChange($event)" />
-              }
-            </div>
-          }
-        </section>
       }
-    </main>
+    </app-page-layout>
   `,
 })
 export class GameDetailComponent implements OnInit {
