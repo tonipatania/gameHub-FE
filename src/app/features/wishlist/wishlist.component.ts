@@ -4,7 +4,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { GameService } from '../../core/services/game.service';
 import { UserService } from '../../core/services/user.service';
 import { Game } from '../../core/models/game.model';
-import { NavbarComponent } from '../../shared/components/navbar/navbar.component';
+import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 import { GameCardComponent } from '../../shared/components/game-card/game-card.component';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../core/services/translation.service';
@@ -13,16 +13,15 @@ type SortKey = 'name' | 'price' | 'release';
 
 @Component({
   selector: 'app-wishlist',
-  imports: [RouterLink, NavbarComponent, GameCardComponent, LoadingSpinnerComponent],
+  imports: [RouterLink, PageLayoutComponent, GameCardComponent, LoadingSpinnerComponent],
   template: `
-    <app-navbar />
-    <main class="mx-auto max-w-6xl px-4 py-8">
+    <app-page-layout>
       <section
         class="mb-8 overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-violet-900/30 via-slate-900 to-slate-900 p-6 sm:p-8"
       >
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h1 class="text-3xl font-bold text-white">{{ i18n.t('wishlist.title') }}</h1>
+            <h1 class="gh-page-title">{{ i18n.t('wishlist.title') }}</h1>
             <p class="mt-2 text-slate-400">
               @if (games().length === 0) {
                 {{ i18n.t('wishlist.subtitleEmpty') }}
@@ -42,27 +41,27 @@ type SortKey = 'name' | 'price' | 'release';
         </div>
 
         @if (games().length > 0) {
-          <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">
+          <dl class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4 xl:max-w-4xl">
+            <div class="gh-tile">
+              <dt class="gh-eyebrow">
                 {{ i18n.t('wishlist.statsGames') }}
               </dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ games().length }}</dd>
             </div>
-            <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">
+            <div class="gh-tile">
+              <dt class="gh-eyebrow">
                 {{ i18n.t('wishlist.statsValue') }}
               </dt>
               <dd class="mt-1 text-2xl font-bold text-emerald-400">{{ totalPrice() }}</dd>
             </div>
-            <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">
+            <div class="gh-tile">
+              <dt class="gh-eyebrow">
                 {{ i18n.t('wishlist.statsGenres') }}
               </dt>
               <dd class="mt-1 text-2xl font-bold text-white">{{ genreCount() }}</dd>
             </div>
-            <div class="rounded-xl border border-slate-800 bg-slate-900/60 px-4 py-3">
-              <dt class="text-xs uppercase tracking-wide text-slate-500">
+            <div class="gh-tile">
+              <dt class="gh-eyebrow">
                 {{ i18n.t('wishlist.statsTopGenre') }}
               </dt>
               <dd class="mt-1 truncate text-2xl font-bold text-violet-300" [title]="topGenre()">
@@ -73,79 +72,80 @@ type SortKey = 'name' | 'price' | 'release';
         }
       </section>
 
-      @if (loading()) {
-        <app-loading-spinner />
-      } @else if (games().length === 0) {
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-12 text-center">
-          <p class="text-5xl">🕹️</p>
-          <p class="mt-4 text-lg font-medium text-white">{{ i18n.t('wishlist.emptyTitle') }}</p>
-          <p class="mt-1 text-slate-400">
-            {{ i18n.t('wishlist.emptySubtitle') }}
-          </p>
-          <a
-            routerLink="/games"
-            class="mt-6 inline-block rounded-lg bg-violet-600 px-5 py-2.5 font-medium text-white transition hover:bg-violet-500"
-          >
-            {{ i18n.t('wishlist.exploreCatalog') }}
-          </a>
-        </div>
-      } @else {
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold text-white">{{ i18n.t('wishlist.yourGames') }}</h2>
-          <div class="flex gap-1 rounded-lg border border-slate-800 bg-slate-900/60 p-1">
-            @for (option of sortOptions; track option.key) {
-              <button
-                type="button"
-                (click)="sortBy.set(option.key)"
-                class="rounded-md px-3 py-1.5 text-sm font-medium transition"
-                [class]="
-                  sortBy() === option.key
-                    ? 'bg-violet-600 text-white'
-                    : 'text-slate-400 hover:text-white'
-                "
-              >
-                {{ i18n.t(option.labelKey) }}
-              </button>
-            }
-          </div>
-        </div>
+      <!-- circa 3/4 ai tuoi giochi e 1/4 ai consigliati; sotto lg le due colonne si impilano -->
+      <div class="grid items-start gap-8 lg:grid-cols-4">
+        <div class="min-w-0 lg:col-span-3">
+          @if (loading()) {
+            <app-loading-spinner />
+          } @else if (games().length === 0) {
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-12 text-center">
+              <p class="text-5xl">🕹️</p>
+              <p class="mt-4 text-lg font-medium text-white">
+                {{ i18n.t('wishlist.emptyTitle') }}
+              </p>
+              <p class="mt-1 text-slate-400">
+                {{ i18n.t('wishlist.emptySubtitle') }}
+              </p>
+              <a routerLink="/games" class="gh-btn gh-btn-primary mt-6 px-5 py-2.5">
+                {{ i18n.t('wishlist.exploreCatalog') }}
+              </a>
+            </div>
+          } @else {
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 class="gh-section-title">{{ i18n.t('wishlist.yourGames') }}</h2>
+              <div class="gh-segmented">
+                @for (option of sortOptions; track option.key) {
+                  <button
+                    type="button"
+                    (click)="sortBy.set(option.key)"
+                    class="gh-segment"
+                    [class.gh-segment-active]="sortBy() === option.key"
+                  >
+                    {{ i18n.t(option.labelKey) }}
+                  </button>
+                }
+              </div>
+            </div>
 
-        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          @for (game of sortedGames(); track game.id) {
-            <app-game-card
-              [game]="game"
-              [showWishlistButton]="true"
-              [inWishlist]="true"
-              [showPrice]="true"
-              (wishlistToggle)="remove($event)"
-            />
+            <div class="gh-game-grid">
+              @for (game of sortedGames(); track game.id) {
+                <app-game-card
+                  [game]="game"
+                  [showWishlistButton]="true"
+                  [inWishlist]="true"
+                  [showPrice]="true"
+                  (wishlistToggle)="remove($event)"
+                />
+              }
+            </div>
           }
         </div>
-      }
 
-      <section class="mt-10">
-        <h2 class="mb-4 text-lg font-semibold text-white">
-          {{ i18n.t('wishlist.suggestedTitle') }}
-        </h2>
-        @if (suggestionsLoading()) {
-          <app-loading-spinner />
-        } @else if (visibleSuggestions().length === 0) {
-          <p class="text-sm text-slate-500">{{ i18n.t('wishlist.noSuggestions') }}</p>
-        } @else {
-          <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            @for (game of visibleSuggestions(); track game.id) {
-              <app-game-card
-                [game]="game"
-                [showWishlistButton]="true"
-                [inWishlist]="false"
-                [showPrice]="true"
-                (wishlistToggle)="addSuggested($event)"
-              />
-            }
-          </div>
-        }
-      </section>
-    </main>
+        <aside class="min-w-0 lg:sticky lg:top-24 lg:col-span-1">
+          <h2 class="gh-section-title">
+            {{ i18n.t('wishlist.suggestedTitle') }}
+          </h2>
+          <p class="mb-4 mt-1 text-sm text-slate-500">{{ i18n.t('wishlist.suggestedHint') }}</p>
+          @if (suggestionsLoading()) {
+            <app-loading-spinner />
+          } @else if (visibleSuggestions().length === 0) {
+            <p class="text-sm text-slate-500">{{ i18n.t('wishlist.noSuggestions') }}</p>
+          } @else {
+            <div class="space-y-2">
+              @for (game of visibleSuggestions(); track game.id) {
+                <app-game-card
+                  [game]="game"
+                  [compact]="true"
+                  [showWishlistButton]="true"
+                  [inWishlist]="false"
+                  (wishlistToggle)="addSuggested($event)"
+                />
+              }
+            </div>
+          }
+        </aside>
+      </div>
+    </app-page-layout>
   `,
 })
 export class WishlistComponent implements OnInit {

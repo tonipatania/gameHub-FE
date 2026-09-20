@@ -12,6 +12,20 @@ export interface SuggestedUser extends UserNeo4j {
   followers?: number | null;
 }
 
+/** Quale elenco della pagina Community: chi seguo, chi mi segue, chi ci segue a vicenda. */
+export type ConnectionType = 'following' | 'followers' | 'mutual';
+
+export interface Connection extends UserNeo4j {
+  /** ci si segue a vicenda */
+  mutual: boolean;
+}
+
+export interface ConnectionStats {
+  following: number;
+  followers: number;
+  mutual: number;
+}
+
 export interface LoginRequest {
   username: string;
   password: string;

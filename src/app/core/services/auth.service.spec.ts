@@ -72,13 +72,48 @@ describe('AuthService', () => {
   it('logout clears storage, signal and navigates to /login', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     sessionStorage.setItem('gamehub_token', 'tok123');
-    service.updateUsername('toni');
+    service.currentUser.set('toni');
 
     service.logout();
 
     expect(service.isLoggedIn()).toBe(false);
     expect(sessionStorage.getItem('gamehub_user')).toBeNull();
     expect(sessionStorage.getItem('gamehub_token')).toBeNull();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/logout`);
+    req.flush(null);
+  });
+
+  it('logout revokes the token on the server with an explicit Authorization header', () => {
+    sessionStorage.setItem('gamehub_token', 'tok123');
+
+    service.logout();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/logout`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.headers.get('Authorization')).toBe('Bearer tok123');
+    req.flush(null);
+  });
+
+  it('logout still completes locally when the server-side revocation fails', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    sessionStorage.setItem('gamehub_token', 'tok123');
+    service.currentUser.set('toni');
+
+    service.logout();
+    httpMock
+      .expectOne(`${environment.apiUrl}/logout`)
+      .flush('boom', { status: 500, statusText: 'Server Error' });
+
+    expect(service.isLoggedIn()).toBe(false);
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
+  });
+
+  it('logout does not call the server when there is no token', () => {
+    service.logout();
+
+    httpMock.expectNone(`${environment.apiUrl}/logout`);
     expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
@@ -97,5 +132,32 @@ describe('AuthService', () => {
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual(payload);
     req.flush('ok');
+  });
+
+  it('forgotPassword posts the email as text and does not touch the session', () => {
+    let result: string | undefined;
+    service.forgotPassword('mario@example.com').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/forgot-password`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'mario@example.com' });
+    expect(req.request.responseType).toBe('text');
+    req.flush('ok');
+
+    expect(result).toBe('ok');
+    expect(service.isLoggedIn()).toBe(false);
+  });
+
+  it('resetPassword posts the token and new password as text', () => {
+    let result: string | undefined;
+    service.resetPassword('tok-123', 'NewPassw0rd!').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/reset-password`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ token: 'tok-123', newPassword: 'NewPassw0rd!' });
+    expect(req.request.responseType).toBe('text');
+    req.flush('done');
+
+    expect(result).toBe('done');
   });
 });

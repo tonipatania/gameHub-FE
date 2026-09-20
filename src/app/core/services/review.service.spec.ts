@@ -28,6 +28,14 @@ describe('ReviewService', () => {
     req.flush('created');
   });
 
+  it('getReview fetches a single review by id', () => {
+    service.getReview('r 1').subscribe((review) => expect(review.id).toBe('r 1'));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/review/r%201`);
+    expect(req.request.method).toBe('GET');
+    req.flush({ id: 'r 1' });
+  });
+
   it('hasLiked is false before any liked reviews are loaded', () => {
     expect(service.hasLiked('r1')).toBe(false);
   });
@@ -121,5 +129,47 @@ describe('ReviewService', () => {
 
     expect(result).toBe(false);
     expect(service.hasLiked('r1')).toBe(true);
+  });
+
+  it('createReply posts reviewId and comment without any username', () => {
+    let result: unknown;
+    service.createReply('r1', 'Concordo').subscribe((r) => (result = r));
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/review/reply`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ reviewId: 'r1', comment: 'Concordo' });
+    req.flush({ id: 'p1', reviewId: 'r1', username: 'toni', comment: 'Concordo', createdAt: 'x' });
+
+    expect(result).toMatchObject({ id: 'p1', username: 'toni' });
+  });
+
+  it('getReplies requests the thread of one review', () => {
+    service.getReplies('r1').subscribe();
+
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/review/replies`);
+    expect(req.request.params.get('reviewId')).toBe('r1');
+    req.flush([]);
+  });
+
+  it('getReplyCounts batches every id in one call and skips the call for an empty list', () => {
+    let empty: unknown;
+    service.getReplyCounts([]).subscribe((r) => (empty = r));
+    httpMock.expectNone(() => true);
+    expect(empty).toEqual({});
+
+    let counts: unknown;
+    service.getReplyCounts(['r1', 'r2']).subscribe((r) => (counts = r));
+    const req = httpMock.expectOne((r) => r.url === `${environment.apiUrl}/review/replies/counts`);
+    expect(req.request.params.getAll('ids')).toEqual(['r1', 'r2']);
+    req.flush({ r1: 3 });
+    expect(counts).toEqual({ r1: 3 });
+  });
+
+  it('deleteReply sends a DELETE for the reply id', () => {
+    service.deleteReply('p1').subscribe();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/review/reply/p1`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush('reply deleted');
   });
 });

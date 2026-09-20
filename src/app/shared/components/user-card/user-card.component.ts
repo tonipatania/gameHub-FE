@@ -7,9 +7,7 @@ import { TranslationService } from '../../../core/services/translation.service';
   selector: 'app-user-card',
   imports: [RouterLink],
   template: `
-    <article
-      class="flex items-center justify-between gap-4 rounded-xl border border-slate-800 bg-slate-900/80 p-4"
-    >
+    <article class="flex items-center justify-between gap-4 gh-card p-4">
       <a [routerLink]="['/profile', user().username]" class="flex min-w-0 items-center gap-3">
         <div
           class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-cyan-500 text-sm font-bold text-white"
@@ -17,7 +15,25 @@ import { TranslationService } from '../../../core/services/translation.service';
           {{ initials() }}
         </div>
         <div class="min-w-0">
-          <p class="truncate font-semibold text-white">{{ user().username }}</p>
+          <div class="flex items-center gap-2">
+            <p class="truncate font-semibold text-white">{{ user().username }}</p>
+            @if (relation() !== 'none') {
+              <span
+                class="shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide"
+                [class]="
+                  relation() === 'mutual'
+                    ? 'bg-emerald-500/15 text-emerald-300'
+                    : 'bg-violet-500/15 text-violet-300'
+                "
+              >
+                {{
+                  relation() === 'mutual'
+                    ? i18n.t('userCard.relationMutual')
+                    : i18n.t('userCard.relationFollowsYou')
+                }}
+              </span>
+            }
+          </div>
           <p class="truncate text-xs text-slate-500">{{ subtitle() }}</p>
         </div>
       </a>
@@ -25,12 +41,8 @@ import { TranslationService } from '../../../core/services/translation.service';
         <button
           type="button"
           (click)="followToggle.emit(user().username)"
-          class="shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition"
-          [class]="
-            isFollowing()
-              ? 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              : 'bg-violet-600 text-white hover:bg-violet-500'
-          "
+          class="gh-btn shrink-0"
+          [class]="isFollowing() ? 'gh-btn-muted' : 'gh-btn-primary'"
         >
           {{ isFollowing() ? i18n.t('userCard.alreadyFollowing') : i18n.t('userCard.follow') }}
         </button>
@@ -44,6 +56,8 @@ export class UserCardComponent {
   readonly user = input.required<SuggestedUser>();
   readonly isFollowing = input(false);
   readonly showFollowButton = input(false);
+  /** come ci si segue: "ti segue" (solo lui), "reciproco" (entrambi), nessuna etichetta altrimenti */
+  readonly relation = input<'none' | 'followsYou' | 'mutual'>('none');
   readonly followToggle = output<string>();
 
   initials(): string {

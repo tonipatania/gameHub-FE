@@ -13,3 +13,12 @@ export interface ReviewCreate {
   comment: string;
   userScore: number;
 }
+
+/** Risposta a una recensione: il thread e' piatto, non si risponde a una risposta. */
+export interface ReviewReply {
+  id: string;
+  reviewId: string;
+  username: string;
+  comment: string;
+  createdAt: string;
+}

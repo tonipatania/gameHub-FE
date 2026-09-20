@@ -2,9 +2,15 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ActivityItem } from '../models/activity.model';
+import { ActivityItem, CommunityHighlights } from '../models/activity.model';
 import { Game, GameNeo4j, Page } from '../models/game.model';
-import { SuggestedUser, UserNeo4j } from '../models/user.model';
+import {
+  Connection,
+  ConnectionStats,
+  ConnectionType,
+  SuggestedUser,
+  UserNeo4j,
+} from '../models/user.model';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -87,14 +93,19 @@ export class UserService {
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
   }
 
-  getFollowedUsersPage(username: string, page = 0, size = 20): Observable<Page<UserNeo4j>> {
+  // l'utente e' quello del token: sono sempre i "miei" seguiti / follower / reciproci
+  getConnectionsPage(type: ConnectionType, page = 0, size = 20): Observable<Page<Connection>> {
     const params = new HttpParams()
-      .set('username', username)
+      .set('type', type)
       .set('page', page.toString())
       .set('size', size.toString());
-    return this.http.get<Page<UserNeo4j>>(`${environment.apiUrl}/user/followedUser/page`, {
+    return this.http.get<Page<Connection>>(`${environment.apiUrl}/user/connections/page`, {
       params,
     });
+  }
+
+  getConnectionStats(): Observable<ConnectionStats> {
+    return this.http.get<ConnectionStats>(`${environment.apiUrl}/user/connections/stats`);
   }
 
   searchUsers(query: string, username: string): Observable<UserNeo4j[]> {
@@ -104,14 +115,25 @@ export class UserService {
       .pipe(map((result) => (Array.isArray(result) ? result : [])));
   }
 
-  getFriendsActivity(username: string, page = 0, size = 15): Observable<Page<ActivityItem>> {
-    const params = new HttpParams()
-      .set('username', username)
-      .set('page', page.toString())
-      .set('size', size.toString());
+  // l'utente e' quello del token: il backend lo ricava da li, cosi lo stato "nuovo/visto" e'
+  // sempre il suo e non si puo' leggere il feed di un altro passando uno username
+  getFriendsActivity(page = 0, size = 15): Observable<Page<ActivityItem>> {
+    const params = new HttpParams().set('page', page.toString()).set('size', size.toString());
     return this.http.get<Page<ActivityItem>>(`${environment.apiUrl}/user/activity/friends`, {
       params,
     });
+  }
+
+  /** Avanza il "segnalibro" del feed: le attivita' fino a upTo (ISO-8601) risultano viste. */
+  markActivitySeen(upTo: string): Observable<void> {
+    const params = new HttpParams().set('upTo', upTo);
+    return this.http.post<void>(`${environment.apiUrl}/user/activity/friends/seen`, null, {
+      params,
+    });
+  }
+
+  getCommunityHighlights(): Observable<CommunityHighlights> {
+    return this.http.get<CommunityHighlights>(`${environment.apiUrl}/user/community/highlights`);
   }
 
   getSuggestedFriends(username: string): Observable<SuggestedUser[]> {
@@ -138,14 +160,6 @@ export class UserService {
       .set('followerUsername', followerUsername)
       .set('followedUsername', followedUsername);
     return this.http.post(`${environment.apiUrl}/user/userSelected/unfollow`, null, {
-      params,
-      responseType: 'text',
-    });
-  }
-
-  updateUsername(username: string, newUsername: string): Observable<string> {
-    const params = new HttpParams().set('username', username).set('newUsername', newUsername);
-    return this.http.patch(`${environment.apiUrl}/user/updateUser`, null, {
       params,
       responseType: 'text',
     });

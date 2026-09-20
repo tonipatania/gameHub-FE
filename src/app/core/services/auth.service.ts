@@ -40,13 +40,42 @@ export class AuthService {
     });
   }
 
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post(
+      `${environment.apiUrl}/forgot-password`,
+      { email },
+      { responseType: 'text' },
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<string> {
+    return this.http.post(
+      `${environment.apiUrl}/reset-password`,
+      { token, newPassword },
+      { responseType: 'text' },
+    );
+  }
+
   logout(): void {
+    const token = this.getToken();
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.removeItem(STORAGE_KEY);
       sessionStorage.removeItem(TOKEN_KEY);
     }
     this.currentUser.set(null);
     this.router.navigate(['/login']);
+
+    if (token) {
+      // Il logout locale e' gia' completo (utente reindirizzato, sessione pulita): la revoca sul
+      // server e' un tentativo "best effort" che non deve bloccare l'uscita se la rete o il
+      // backend hanno un problema. L'header va passato esplicitamente qui perche' getToken() ora
+      // restituisce gia' null (l'interceptor non lo aggiungerebbe piu' da solo).
+      this.http
+        .post(`${environment.apiUrl}/logout`, null, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .subscribe({ error: () => undefined });
+    }
   }
 
   isLoggedIn(): boolean {
@@ -62,13 +91,6 @@ export class AuthService {
       return null;
     }
     return sessionStorage.getItem(TOKEN_KEY);
-  }
-
-  updateUsername(username: string): void {
-    if (isPlatformBrowser(this.platformId)) {
-      sessionStorage.setItem(STORAGE_KEY, username);
-    }
-    this.currentUser.set(username);
   }
 
   private setUser(username: string, token: string): void {

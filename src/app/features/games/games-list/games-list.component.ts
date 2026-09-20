@@ -1,38 +1,64 @@
-import { Component, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { GameService } from '../../../core/services/game.service';
 import { UserService } from '../../../core/services/user.service';
-import { Game } from '../../../core/models/game.model';
-import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { Game, GameRails } from '../../../core/models/game.model';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { GameCardComponent } from '../../../shared/components/game-card/game-card.component';
+import { GameRailComponent } from '../../../shared/components/game-rail/game-rail.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { TranslationService } from '../../../core/services/translation.service';
 
 @Component({
   selector: 'app-games',
-  imports: [ReactiveFormsModule, NavbarComponent, GameCardComponent, LoadingSpinnerComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    PageLayoutComponent,
+    PageHeaderComponent,
+    PaginationComponent,
+    GameCardComponent,
+    GameRailComponent,
+    LoadingSpinnerComponent,
+  ],
   template: `
-    <app-navbar />
-    <main class="mx-auto max-w-7xl px-4 py-8">
-      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-white">{{ i18n.t('games.title') }}</h1>
-          <p class="mt-1 text-slate-400">{{ i18n.t('games.subtitle') }}</p>
+    <app-page-layout>
+      <app-page-header [title]="i18n.t('games.title')" [subtitle]="i18n.t('games.subtitle')">
+        <div class="gh-segmented">
+          <button
+            type="button"
+            (click)="showDiscover()"
+            class="gh-segment"
+            [class.gh-segment-active]="showRails()"
+          >
+            {{ i18n.t('games.viewDiscover') }}
+          </button>
+          <button
+            type="button"
+            (click)="openCatalog()"
+            class="gh-segment"
+            [class.gh-segment-active]="!showRails()"
+          >
+            {{ i18n.t('games.viewCatalog') }}
+          </button>
         </div>
-        <form [formGroup]="filterForm" class="flex flex-wrap gap-3">
+        <form [formGroup]="filterForm" class="flex w-full flex-wrap gap-3 sm:w-auto">
           <input
             formControlName="name"
             [placeholder]="i18n.t('games.searchPlaceholder')"
-            class="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white outline-none focus:border-violet-500"
+            class="gh-input min-w-0 flex-1 sm:w-72 sm:flex-none"
           />
 
           <div class="relative">
             <button
               type="button"
               (click)="genresMenuOpen.set(!genresMenuOpen())"
-              class="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm text-white outline-none focus:border-violet-500"
+              class="gh-input flex w-auto cursor-pointer items-center gap-2"
             >
               @if (selectedGenres().size === 0) {
                 {{ i18n.t('games.genresLabel') }}
@@ -69,17 +95,116 @@ import { TranslationService } from '../../../core/services/translation.service';
             }
           </div>
         </form>
-      </div>
+      </app-page-header>
 
       <div #topAnchor></div>
 
-      @if (loading() && games().length === 0) {
+      @if (showRails()) {
+        @if (railsLoading()) {
+          <app-loading-spinner />
+        } @else if (!hasRails()) {
+          <div class="gh-panel p-10 text-center">
+            <p class="text-slate-400">{{ i18n.t('games.railsUnavailable') }}</p>
+            <button type="button" (click)="openCatalog()" class="gh-btn gh-btn-primary mt-4 px-5">
+              {{ i18n.t('games.openCatalog') }}
+            </button>
+          </div>
+        } @else {
+          @if (featured(); as hero) {
+            <section
+              class="relative mb-10 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900"
+            >
+              @if (hero.url?.headerImage) {
+                <img
+                  [src]="hero.url!.headerImage"
+                  [alt]="hero.name"
+                  class="absolute inset-y-0 right-0 h-full w-full object-cover opacity-60 sm:w-3/5 sm:opacity-100"
+                />
+              }
+              <div
+                class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-transparent sm:via-slate-950/70"
+              ></div>
+              <div class="relative flex min-h-64 max-w-2xl flex-col justify-end gap-3 p-6 sm:p-10">
+                <span class="gh-eyebrow !text-violet-300">{{ i18n.t('games.heroEyebrow') }}</span>
+                <h2 class="text-3xl font-black text-white sm:text-4xl">{{ hero.name }}</h2>
+                @if (hero.genres) {
+                  <p class="text-sm text-slate-300">{{ hero.genres }}</p>
+                }
+                <div class="mt-2 flex flex-wrap items-center gap-3">
+                  <a
+                    [routerLink]="['/games', encodeName(hero.name)]"
+                    class="gh-btn gh-btn-primary px-5 py-2.5"
+                  >
+                    {{ i18n.t('games.heroCta') }}
+                  </a>
+                  <button
+                    type="button"
+                    (click)="toggleWishlist(hero.name)"
+                    class="gh-btn px-5 py-2.5"
+                    [class]="isInWishlist(hero.name) ? 'gh-btn-danger-soft' : 'gh-btn-muted'"
+                  >
+                    {{
+                      isInWishlist(hero.name)
+                        ? i18n.t('gameCard.inWishlist')
+                        : i18n.t('gameCard.addWishlist')
+                    }}
+                  </button>
+                  @if (hero.avgScore) {
+                    <span
+                      class="rounded-full bg-emerald-500/90 px-3 py-1 text-sm font-semibold text-white"
+                    >
+                      {{ hero.avgScore }}/10
+                    </span>
+                  }
+                </div>
+              </div>
+            </section>
+          }
+
+          <div class="space-y-10">
+            @if (rails()!.weekly.length > 0) {
+              <app-game-rail
+                [title]="i18n.t('games.railWeekly')"
+                [subtitle]="i18n.t('games.railWeeklyHint')"
+                [games]="rails()!.weekly"
+                [ranked]="true"
+                [wishlistNames]="wishlistNames()"
+                (wishlistToggle)="toggleWishlist($event)"
+              />
+            }
+            @if (rails()!.favorites.length > 0) {
+              <app-game-rail
+                [title]="i18n.t('games.railFavorites')"
+                [subtitle]="i18n.t('games.railFavoritesHint')"
+                [games]="rails()!.favorites"
+                [wishlistNames]="wishlistNames()"
+                (wishlistToggle)="toggleWishlist($event)"
+              />
+            }
+            @if (rails()!.latest.length > 0) {
+              <app-game-rail
+                [title]="i18n.t('games.railLatest')"
+                [subtitle]="i18n.t('games.railLatestHint')"
+                [games]="rails()!.latest"
+                [wishlistNames]="wishlistNames()"
+                (wishlistToggle)="toggleWishlist($event)"
+              />
+            }
+          </div>
+
+          <div class="mt-12 text-center">
+            <button type="button" (click)="openCatalog()" class="gh-btn gh-btn-outline px-6 py-2.5">
+              {{ i18n.t('games.openCatalog') }}
+            </button>
+          </div>
+        }
+      } @else if (loading() && games().length === 0) {
         <app-loading-spinner />
       } @else if (games().length === 0) {
         <p class="text-center text-slate-400">{{ i18n.t('games.noGamesFound') }}</p>
       } @else {
         <div
-          class="grid gap-6 transition-opacity duration-150 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          class="gh-game-grid transition-opacity duration-150"
           [class.opacity-50]="navigating()"
           [class.pointer-events-none]="navigating()"
         >
@@ -93,29 +218,16 @@ import { TranslationService } from '../../../core/services/translation.service';
           }
         </div>
 
-        <div class="mt-8 flex items-center justify-center gap-4">
-          <button
-            type="button"
-            (click)="prevPage()"
-            [disabled]="currentPage() === 0 || navigating()"
-            class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {{ i18n.t('common.prev') }}
-          </button>
-          <span class="text-sm text-slate-400">
-            {{ i18n.t('common.pageOf', { current: currentPage() + 1, total: totalPages() }) }}
-          </span>
-          <button
-            type="button"
-            (click)="nextPage()"
-            [disabled]="currentPage() >= totalPages() - 1 || navigating()"
-            class="cursor-pointer rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-300 transition disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {{ i18n.t('common.next') }}
-          </button>
-        </div>
+        <app-pagination
+          class="mt-8"
+          [page]="currentPage()"
+          [totalPages]="totalPages()"
+          [disabled]="navigating()"
+          (prev)="prevPage()"
+          (next)="nextPage()"
+        />
       }
-    </main>
+    </app-page-layout>
   `,
 })
 export class GamesComponent implements OnInit {
@@ -127,8 +239,13 @@ export class GamesComponent implements OnInit {
 
   private readonly topAnchor = viewChild<ElementRef<HTMLElement>>('topAnchor');
 
-  readonly loading = signal(true);
+  readonly loading = signal(false);
   readonly navigating = signal(false);
+  readonly railsLoading = signal(true);
+  readonly rails = signal<GameRails | null>(null);
+  // vista "Catalogo": la griglia A-Z di tutti i giochi, aperta dall'utente o dalla ricerca
+  readonly catalogOpen = signal(false);
+  readonly hasFilter = signal(false);
   readonly games = signal<Game[]>([]);
   readonly currentPage = signal(0);
   readonly totalPages = signal(1);
@@ -142,9 +259,19 @@ export class GamesComponent implements OnInit {
     name: [''],
   });
 
+  // gli scaffali sono la vista di default; cercare o filtrare per genere mostra i risultati in
+  // griglia, e "Catalogo" e' la griglia A-Z senza filtri
+  readonly showRails = computed(() => !this.catalogOpen() && !this.hasFilter());
+  readonly hasRails = computed(() => {
+    const rails = this.rails();
+    return !!rails && rails.weekly.length + rails.favorites.length + rails.latest.length > 0;
+  });
+  // il gioco in vetrina e' il primo della settimana
+  readonly featured = computed(() => this.rails()?.weekly[0] ?? null);
+
   ngOnInit(): void {
     this.loadWishlist();
-    this.loadGames(0);
+    this.loadRails();
     this.gameService.getGenres().subscribe((genres) => this.allGenres.set(genres));
 
     this.filterForm.valueChanges
@@ -161,6 +288,32 @@ export class GamesComponent implements OnInit {
     }
     this.selectedGenres.set(updated);
     this.applyFilter();
+  }
+
+  showDiscover(): void {
+    this.catalogOpen.set(false);
+    this.hasFilter.set(false);
+    this.selectedGenres.set(new Set());
+    // emitEvent false: si azzera la ricerca senza far partire il debounce, che ricaricherebbe
+    // una griglia che non si vede piu'
+    this.filterForm.reset({ name: '' }, { emitEvent: false });
+  }
+
+  openCatalog(): void {
+    if (this.catalogOpen()) return;
+    this.catalogOpen.set(true);
+    if (!this.hasFilter()) this.loadGames(0);
+  }
+
+  private loadRails(): void {
+    this.railsLoading.set(true);
+    this.gameService.getRails().subscribe({
+      next: (rails) => {
+        this.rails.set(rails);
+        this.railsLoading.set(false);
+      },
+      error: () => this.railsLoading.set(false),
+    });
   }
 
   loadGames(page: number): void {
@@ -185,10 +338,13 @@ export class GamesComponent implements OnInit {
     const { name } = this.filterForm.getRawValue();
     const genres = Array.from(this.selectedGenres());
     if (!name && genres.length === 0) {
-      this.loadGames(page);
+      this.hasFilter.set(false);
+      // senza filtri si torna agli scaffali, a meno che l'utente non stia sfogliando il catalogo
+      if (this.catalogOpen()) this.loadGames(page);
       return;
     }
 
+    this.hasFilter.set(true);
     this.loading.set(true);
     this.isSearching.set(true);
     this.gameService
@@ -232,6 +388,10 @@ export class GamesComponent implements OnInit {
     } else {
       this.loadGames(page);
     }
+  }
+
+  encodeName(name: string): string {
+    return encodeURIComponent(name);
   }
 
   isInWishlist(name: string): boolean {

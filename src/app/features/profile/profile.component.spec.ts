@@ -76,6 +76,24 @@ describe('ProfileComponent', () => {
     expect(c.wishlist().length).toBe(1);
   });
 
+  it('does not offer username editing, not even on the own profile', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = setup('toni');
+
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
+      .flush({ id: 'u1', username: 'toni' });
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
+      .flush(wishlistPage());
+    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
+    fixture.detectChanges();
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.querySelector('form')).toBeNull();
+    expect(root.querySelector('input')).toBeNull();
+  });
+
   it('loads another user profile: fetches common games and following state', () => {
     sessionStorage.setItem('gamehub_user', 'toni');
     const fixture = setup('friend1');
@@ -98,37 +116,6 @@ describe('ProfileComponent', () => {
     expect(c.commonCount()).toBe(1);
     expect(c.isCommon('Shared Game')).toBe(true);
     expect(c.isFollowing()).toBe(true);
-  });
-
-  it('updateUsername persists the new username, updates AuthService and reloads the profile', () => {
-    sessionStorage.setItem('gamehub_user', 'toni');
-    const fixture = setup('toni');
-
-    httpMock
-      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
-      .flush({ id: 'u1', username: 'toni' });
-    httpMock
-      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
-      .flush(wishlistPage());
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
-
-    const c = fixture.componentInstance;
-    c.usernameForm.setValue({ newUsername: 'toni2' });
-    c.updateUsername();
-
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/updateUser`).flush('updated');
-
-    expect(c.updateMessage()).toBeTruthy();
-    expect(sessionStorage.getItem('gamehub_user')).toBe('toni2');
-
-    // updateUsername() triggers a fresh loadProfile() for the renamed user
-    httpMock
-      .expectOne((r) => r.url === `${environment.apiUrl}/user/getUser`)
-      .flush({ id: 'u1', username: 'toni2' });
-    httpMock
-      .expectOne((r) => r.url === `${environment.apiUrl}/user/userSelected/wishlist/page`)
-      .flush(wishlistPage());
-    httpMock.expectOne((r) => r.url === `${environment.apiUrl}/user/followedUser`).flush([]);
   });
 
   it('toggleFollow follows/unfollows without a full profile reload', () => {

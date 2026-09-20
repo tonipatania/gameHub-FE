@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Game, GameSearchFilter, Page } from '../models/game.model';
+import { Game, GameRails, GameSearchFilter, Page } from '../models/game.model';
 
 @Injectable({ providedIn: 'root' })
 export class GameService {
@@ -30,6 +30,10 @@ export class GameService {
   getGamesWithReviews(size = 20): Observable<Game[]> {
     const params = new HttpParams().set('size', size.toString());
     return this.http.get<Game[]>(`${environment.apiUrl}/game/withReviews`, { params });
+  }
+
+  getRails(): Observable<GameRails> {
+    return this.http.get<GameRails>(`${environment.apiUrl}/game/rails`);
   }
 
   getGenres(): Observable<string[]> {
