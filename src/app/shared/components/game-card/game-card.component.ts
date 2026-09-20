@@ -11,36 +11,55 @@ import { TranslationService } from '../../../core/services/translation.service';
       class="group relative cursor-pointer overflow-hidden gh-card transition hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/10 focus-within:border-violet-500"
     >
       @if (compact()) {
-        <a [routerLink]="['/games', encodeName(game().name)]" class="flex items-center gap-3 p-3">
-          <div class="relative h-11 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-800">
-            @if (game().url?.headerImage) {
-              <img
-                [src]="game().url!.headerImage"
-                [alt]="game().name"
-                class="h-full w-full object-cover"
-              />
-            } @else {
-              <div
-                class="flex h-full items-center justify-center bg-gradient-to-br from-violet-900/40 to-slate-900 text-xl"
+        <div class="flex items-center gap-3 p-3">
+          <a
+            [routerLink]="['/games', encodeName(game().name)]"
+            class="flex min-w-0 flex-1 items-center gap-3 focus:outline-none"
+          >
+            <div class="relative h-11 w-20 shrink-0 overflow-hidden rounded-lg bg-slate-800">
+              @if (game().url?.headerImage) {
+                <img
+                  [src]="game().url!.headerImage"
+                  [alt]="game().name"
+                  class="h-full w-full object-cover"
+                />
+              } @else {
+                <div
+                  class="flex h-full items-center justify-center bg-gradient-to-br from-violet-900/40 to-slate-900 text-xl"
+                >
+                  🎮
+                </div>
+              }
+            </div>
+            <div class="min-w-0 flex-1">
+              <h3
+                class="truncate text-sm font-semibold text-white transition group-hover:text-violet-300"
               >
-                🎮
-              </div>
-            }
-          </div>
-          <div class="min-w-0 flex-1">
-            <h3 class="truncate text-sm font-semibold text-white">{{ game().name }}</h3>
-            @if (game().genres) {
-              <p class="truncate text-xs text-slate-400">{{ game().genres }}</p>
-            }
-          </div>
-          @if (game().avgScore) {
-            <span
-              class="shrink-0 rounded-full bg-emerald-500/90 px-2 py-0.5 text-xs font-semibold text-white"
+                {{ game().name }}
+              </h3>
+              <p class="truncate text-xs text-slate-400">
+                {{ compactSubtitle() }}
+              </p>
+            </div>
+          </a>
+          @if (showWishlistButton()) {
+            <!-- il bottone sta accanto al link e non dentro: un <button> dentro un <a> non e' HTML valido -->
+            <button
+              type="button"
+              (click)="wishlistToggle.emit(game().name)"
+              class="gh-btn gh-btn-sm h-8 w-8 shrink-0 !px-0 text-base"
+              [class]="inWishlist() ? 'gh-btn-danger-soft' : 'gh-btn-soft'"
+              [title]="
+                inWishlist() ? i18n.t('gameCard.removeWishlist') : i18n.t('gameCard.addWishlist')
+              "
+              [attr.aria-label]="
+                inWishlist() ? i18n.t('gameCard.removeWishlist') : i18n.t('gameCard.addWishlist')
+              "
             >
-              {{ game().avgScore }}/10
-            </span>
+              {{ inWishlist() ? '♥' : '+' }}
+            </button>
           }
-        </a>
+        </div>
       } @else {
         <div class="relative aspect-[16/9] overflow-hidden bg-slate-800">
           @if (game().url?.headerImage) {
@@ -147,6 +166,11 @@ export class GameCardComponent {
 
   priceLabel(): string {
     return this.isFree() ? this.i18n.t('common.free') : '€' + this.game().price!.toFixed(2);
+  }
+
+  // sotto il titolo di una card compatta: il genere, oppure il prezzo se il genere manca
+  compactSubtitle(): string {
+    return this.game().genres || (this.game().price != null ? this.priceLabel() : '');
   }
 
   encodeName(name: string): string {

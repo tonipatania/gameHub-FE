@@ -152,6 +152,7 @@ export const it: Record<string, string> = {
   'wishlist.sortPrice': 'Prezzo',
   'wishlist.sortRelease': 'Uscita',
   'wishlist.suggestedTitle': 'Consigliati per te',
+  'wishlist.suggestedHint': 'Scelti in base ai tuoi gusti e a quelli della community',
   'wishlist.noSuggestions':
     'Interagisci con la piattaforma per ricevere suggerimenti personalizzati.',
 
@@ -221,6 +222,7 @@ export const it: Record<string, string> = {
 
   'gameCard.inWishlist': '♥ In wishlist',
   'gameCard.addWishlist': '+ Wishlist',
+  'gameCard.removeWishlist': 'Rimuovi dalla wishlist',
 
   'backButton.default': 'Indietro',
 

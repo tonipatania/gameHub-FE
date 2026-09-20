@@ -156,4 +156,49 @@ describe('WishlistComponent', () => {
     expect(fixture.componentInstance.games().map((g) => g.name)).toContain('Chrono Trigger');
     expect(fixture.componentInstance.visibleSuggestions()).toEqual([]);
   });
+
+  it("keeps the suggestions in a side column next to the user's games", () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = create();
+    flushWishlist(games, [{ id: 'g4', name: 'Chrono Trigger' }]);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const aside = el.querySelector('aside')!;
+    // circa 3/4 ai tuoi giochi, 1/4 ai consigliati
+    expect(el.querySelector('.lg\\:col-span-3')).toBeTruthy();
+    expect(aside.classList.contains('lg:col-span-1')).toBe(true);
+    expect(aside.textContent).toContain('Chrono Trigger');
+    expect(aside.textContent).not.toContain('Zelda');
+    expect(el.querySelector('.lg\\:col-span-3')?.textContent).toContain('Zelda');
+  });
+
+  it('adds a suggestion from the side column with its + button', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = create();
+    flushWishlist(games, [{ id: 'g4', name: 'Chrono Trigger' }]);
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('aside button').click();
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/user/wishlist/addWishlistGame`)
+      .flush('added');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.games().map((g) => g.name)).toContain('Chrono Trigger');
+    expect(fixture.nativeElement.querySelector('aside').textContent).not.toContain(
+      'Chrono Trigger',
+    );
+  });
+
+  it('still shows the suggestions when the wishlist is empty', () => {
+    sessionStorage.setItem('gamehub_user', 'toni');
+    const fixture = create();
+    flushWishlist([], [{ id: 'g4', name: 'Chrono Trigger' }]);
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.textContent).toContain('Your wishlist is empty');
+    expect(el.querySelector('aside')?.textContent).toContain('Chrono Trigger');
+  });
 });

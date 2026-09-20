@@ -72,71 +72,79 @@ type SortKey = 'name' | 'price' | 'release';
         }
       </section>
 
-      @if (loading()) {
-        <app-loading-spinner />
-      } @else if (games().length === 0) {
-        <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-12 text-center">
-          <p class="text-5xl">🕹️</p>
-          <p class="mt-4 text-lg font-medium text-white">{{ i18n.t('wishlist.emptyTitle') }}</p>
-          <p class="mt-1 text-slate-400">
-            {{ i18n.t('wishlist.emptySubtitle') }}
-          </p>
-          <a routerLink="/games" class="gh-btn gh-btn-primary mt-6 px-5 py-2.5">
-            {{ i18n.t('wishlist.exploreCatalog') }}
-          </a>
-        </div>
-      } @else {
-        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <h2 class="gh-section-title">{{ i18n.t('wishlist.yourGames') }}</h2>
-          <div class="gh-segmented">
-            @for (option of sortOptions; track option.key) {
-              <button
-                type="button"
-                (click)="sortBy.set(option.key)"
-                class="gh-segment"
-                [class.gh-segment-active]="sortBy() === option.key"
-              >
-                {{ i18n.t(option.labelKey) }}
-              </button>
-            }
-          </div>
-        </div>
+      <!-- circa 3/4 ai tuoi giochi e 1/4 ai consigliati; sotto lg le due colonne si impilano -->
+      <div class="grid items-start gap-8 lg:grid-cols-4">
+        <div class="min-w-0 lg:col-span-3">
+          @if (loading()) {
+            <app-loading-spinner />
+          } @else if (games().length === 0) {
+            <div class="rounded-2xl border border-slate-800 bg-slate-900/50 p-12 text-center">
+              <p class="text-5xl">🕹️</p>
+              <p class="mt-4 text-lg font-medium text-white">
+                {{ i18n.t('wishlist.emptyTitle') }}
+              </p>
+              <p class="mt-1 text-slate-400">
+                {{ i18n.t('wishlist.emptySubtitle') }}
+              </p>
+              <a routerLink="/games" class="gh-btn gh-btn-primary mt-6 px-5 py-2.5">
+                {{ i18n.t('wishlist.exploreCatalog') }}
+              </a>
+            </div>
+          } @else {
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 class="gh-section-title">{{ i18n.t('wishlist.yourGames') }}</h2>
+              <div class="gh-segmented">
+                @for (option of sortOptions; track option.key) {
+                  <button
+                    type="button"
+                    (click)="sortBy.set(option.key)"
+                    class="gh-segment"
+                    [class.gh-segment-active]="sortBy() === option.key"
+                  >
+                    {{ i18n.t(option.labelKey) }}
+                  </button>
+                }
+              </div>
+            </div>
 
-        <div class="gh-game-grid">
-          @for (game of sortedGames(); track game.id) {
-            <app-game-card
-              [game]="game"
-              [showWishlistButton]="true"
-              [inWishlist]="true"
-              [showPrice]="true"
-              (wishlistToggle)="remove($event)"
-            />
+            <div class="gh-game-grid">
+              @for (game of sortedGames(); track game.id) {
+                <app-game-card
+                  [game]="game"
+                  [showWishlistButton]="true"
+                  [inWishlist]="true"
+                  [showPrice]="true"
+                  (wishlistToggle)="remove($event)"
+                />
+              }
+            </div>
           }
         </div>
-      }
 
-      <section class="mt-10">
-        <h2 class="gh-section-title mb-4">
-          {{ i18n.t('wishlist.suggestedTitle') }}
-        </h2>
-        @if (suggestionsLoading()) {
-          <app-loading-spinner />
-        } @else if (visibleSuggestions().length === 0) {
-          <p class="text-sm text-slate-500">{{ i18n.t('wishlist.noSuggestions') }}</p>
-        } @else {
-          <div class="gh-game-grid">
-            @for (game of visibleSuggestions(); track game.id) {
-              <app-game-card
-                [game]="game"
-                [showWishlistButton]="true"
-                [inWishlist]="false"
-                [showPrice]="true"
-                (wishlistToggle)="addSuggested($event)"
-              />
-            }
-          </div>
-        }
-      </section>
+        <aside class="min-w-0 lg:sticky lg:top-24 lg:col-span-1">
+          <h2 class="gh-section-title">
+            {{ i18n.t('wishlist.suggestedTitle') }}
+          </h2>
+          <p class="mb-4 mt-1 text-sm text-slate-500">{{ i18n.t('wishlist.suggestedHint') }}</p>
+          @if (suggestionsLoading()) {
+            <app-loading-spinner />
+          } @else if (visibleSuggestions().length === 0) {
+            <p class="text-sm text-slate-500">{{ i18n.t('wishlist.noSuggestions') }}</p>
+          } @else {
+            <div class="space-y-2">
+              @for (game of visibleSuggestions(); track game.id) {
+                <app-game-card
+                  [game]="game"
+                  [compact]="true"
+                  [showWishlistButton]="true"
+                  [inWishlist]="false"
+                  (wishlistToggle)="addSuggested($event)"
+                />
+              }
+            </div>
+          }
+        </aside>
+      </div>
     </app-page-layout>
   `,
 })

@@ -82,4 +82,47 @@ describe('GameCardComponent', () => {
       (ranked.nativeElement as HTMLElement).querySelector('.text-5xl')?.textContent?.trim(),
     ).toBe('3');
   });
+
+  describe('compact variant', () => {
+    function createCompact(inWishlist = false) {
+      const fixture = createComponent();
+      fixture.componentRef.setInput('compact', true);
+      fixture.componentRef.setInput('showWishlistButton', true);
+      fixture.componentRef.setInput('inWishlist', inWishlist);
+      fixture.detectChanges();
+      return fixture;
+    }
+
+    it('shows the name, the genres and a small add button', () => {
+      const fixture = createCompact();
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.textContent).toContain('Portal 2');
+      expect(el.textContent).toContain('Puzzle, Platformer');
+      expect(el.querySelector('button')?.textContent?.trim()).toBe('+');
+    });
+
+    it('the button is not nested inside the link (invalid HTML)', () => {
+      const fixture = createCompact();
+      const el = fixture.nativeElement as HTMLElement;
+
+      expect(el.querySelector('a button')).toBeNull();
+      expect(el.querySelector('a')?.getAttribute('href')).toContain('/games/');
+    });
+
+    it('emits the game name when the button is clicked', () => {
+      const fixture = createCompact();
+      const emitted: string[] = [];
+      fixture.componentInstance.wishlistToggle.subscribe((name) => emitted.push(name));
+
+      fixture.nativeElement.querySelector('button').click();
+
+      expect(emitted).toEqual(['Portal 2']);
+    });
+
+    it('shows a filled heart for a game already in the wishlist', () => {
+      const fixture = createCompact(true);
+      expect(fixture.nativeElement.querySelector('button').textContent.trim()).toBe('♥');
+    });
+  });
 });
