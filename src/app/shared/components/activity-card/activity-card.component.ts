@@ -4,6 +4,7 @@ import { ActivityItem } from '../../../core/models/activity.model';
 import { Review } from '../../../core/models/review.model';
 import { TranslationService } from '../../../core/services/translation.service';
 import { SeenOnViewDirective } from '../../directives/seen-on-view.directive';
+import { relativeTime } from '../../utils/relative-time';
 import { LikeChange, ReviewCardComponent } from '../review-card/review-card.component';
 
 /**
@@ -213,15 +214,6 @@ export class ActivityCardComponent {
   }
 
   relativeTime(): string {
-    const minutes = Math.max(
-      0,
-      Math.floor((Date.now() - Date.parse(this.activity().createdAt)) / 60000),
-    );
-    if (minutes < 1) return this.i18n.t('activityFeed.justNow');
-    if (minutes < 60) return this.i18n.t('activityFeed.minutesAgo', { count: minutes });
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return this.i18n.t('activityFeed.hoursAgo', { count: hours });
-    const days = Math.floor(hours / 24);
-    return this.i18n.t('activityFeed.daysAgo', { count: days });
+    return relativeTime(this.activity().createdAt, this.i18n);
   }
 }

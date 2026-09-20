@@ -1,8 +1,8 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, map, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ReviewCreate } from '../models/review.model';
+import { ReviewCreate, ReviewReply } from '../models/review.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewService {
@@ -12,6 +12,33 @@ export class ReviewService {
 
   create(review: ReviewCreate): Observable<string> {
     return this.http.post(`${environment.apiUrl}/review/gameSelected/create`, review, {
+      responseType: 'text',
+    });
+  }
+
+  // l'autore della risposta e' quello del token: qui non si manda nessuno username
+  createReply(reviewId: string, comment: string): Observable<ReviewReply> {
+    return this.http.post<ReviewReply>(`${environment.apiUrl}/review/reply`, { reviewId, comment });
+  }
+
+  getReplies(reviewId: string): Observable<ReviewReply[]> {
+    return this.http.get<ReviewReply[]>(`${environment.apiUrl}/review/replies`, {
+      params: new HttpParams().set('reviewId', reviewId),
+    });
+  }
+
+  /** Numero di risposte per recensione, in una sola chiamata; gli id senza risposte mancano. */
+  getReplyCounts(reviewIds: string[]): Observable<Record<string, number>> {
+    if (reviewIds.length === 0) return of({});
+    let params = new HttpParams();
+    for (const id of reviewIds) params = params.append('ids', id);
+    return this.http.get<Record<string, number>>(`${environment.apiUrl}/review/replies/counts`, {
+      params,
+    });
+  }
+
+  deleteReply(replyId: string): Observable<string> {
+    return this.http.delete(`${environment.apiUrl}/review/reply/${encodeURIComponent(replyId)}`, {
       responseType: 'text',
     });
   }

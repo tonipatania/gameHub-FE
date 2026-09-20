@@ -14,6 +14,8 @@ import {
   ReviewCardComponent,
 } from '../../../shared/components/review-card/review-card.component';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
+import { ScorePickerComponent } from '../../../shared/components/score-picker/score-picker.component';
+import { scoreColor } from '../../../shared/utils/score';
 import { TranslationService } from '../../../core/services/translation.service';
 import { ToastService } from '../../../core/services/toast.service';
 
@@ -25,6 +27,7 @@ import { ToastService } from '../../../core/services/toast.service';
     BackButtonComponent,
     ReviewCardComponent,
     LoadingSpinnerComponent,
+    ScorePickerComponent,
   ],
   template: `
     <app-page-layout>
@@ -53,7 +56,9 @@ import { ToastService } from '../../../core/services/toast.service';
                 <div class="flex items-center gap-3">
                   @if (g.avgScore) {
                     <span
-                      class="rounded-xl bg-emerald-500/20 px-4 py-2 text-lg font-bold text-emerald-400"
+                      class="rounded-xl px-4 py-2 text-lg font-bold"
+                      [style.color]="scoreColor(g.avgScore)"
+                      [style.background-color]="scoreColor(g.avgScore, 0.15)"
                     >
                       {{ g.avgScore }}/10
                     </span>
@@ -124,16 +129,10 @@ import { ToastService } from '../../../core/services/toast.service';
                   <span class="gh-label">{{ i18n.t('gameDetail.commentLabel') }}</span>
                   <textarea formControlName="comment" rows="3" class="gh-input"></textarea>
                 </label>
-                <label class="mb-4 block">
+                <div class="mb-5">
                   <span class="gh-label">{{ i18n.t('gameDetail.scoreLabel') }}</span>
-                  <input
-                    formControlName="userScore"
-                    type="number"
-                    min="1"
-                    max="10"
-                    class="gh-input w-24"
-                  />
-                </label>
+                  <app-score-picker formControlName="userScore" />
+                </div>
                 <button
                   type="submit"
                   [disabled]="reviewForm.invalid || submittingReview()"
@@ -153,7 +152,12 @@ import { ToastService } from '../../../core/services/toast.service';
               } @else {
                 <div class="space-y-4">
                   @for (review of reviews(); track review.id) {
-                    <app-review-card [review]="review" (likeChange)="onLikeChange($event)" />
+                    <app-review-card
+                      [review]="review"
+                      [allowReplies]="true"
+                      [replyCount]="replyCounts()[review.id] ?? 0"
+                      (likeChange)="onLikeChange($event)"
+                    />
                   }
                 </div>
               }
@@ -179,6 +183,9 @@ export class GameDetailComponent implements OnInit {
   readonly reviews = signal<Review[]>([]);
   readonly inWishlist = signal(false);
   readonly submittingReview = signal(false);
+  // risposte per recensione, caricate in blocco: le card mostrano "N risposte" senza aprire il thread
+  readonly replyCounts = signal<Record<string, number>>({});
+  readonly scoreColor = scoreColor;
 
   readonly reviewForm = this.fb.nonNullable.group({
     comment: ['', Validators.required],
@@ -248,6 +255,7 @@ export class GameDetailComponent implements OnInit {
         const game = page.content[0] ?? null;
         this.game.set(game);
         this.reviews.set(game?.reviews ?? []);
+        this.loadReplyCounts();
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
@@ -263,7 +271,19 @@ export class GameDetailComponent implements OnInit {
 
   private loadReviews(): void {
     this.gameService.searchFilter({ name: this.gameName }, 0, 1).subscribe({
-      next: (page) => this.reviews.set(page.content[0]?.reviews ?? []),
+      next: (page) => {
+        this.reviews.set(page.content[0]?.reviews ?? []);
+        this.loadReplyCounts();
+      },
+    });
+  }
+
+  private loadReplyCounts(): void {
+    const ids = this.reviews().map((r) => r.id);
+    this.reviewService.getReplyCounts(ids).subscribe({
+      next: (counts) => this.replyCounts.set(counts),
+      // i conteggi sono un di piu': senza, le card mostrano "Rispondi" e il thread resta apribile
+      error: () => this.replyCounts.set({}),
     });
   }
 }

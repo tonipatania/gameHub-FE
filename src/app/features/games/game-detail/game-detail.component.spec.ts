@@ -67,8 +67,20 @@ describe('GameDetailComponent', () => {
     return fixture;
   }
 
-  function flushGameLookup(page = gamePage()) {
+  function flushGameLookup(page = gamePage(), replyCounts: Record<string, number> = {}) {
     httpMock.expectOne((r) => r.url === `${environment.apiUrl}/game/searchFilter`).flush(page);
+    flushReplyCounts(page.content[0]?.reviews ?? [], replyCounts);
+  }
+
+  // i conteggi delle risposte si chiedono solo se ci sono recensioni da contare
+  function flushReplyCounts(reviews: unknown[], counts: Record<string, number> = {}) {
+    if (reviews.length === 0) {
+      httpMock.expectNone((r) => r.url === `${environment.apiUrl}/review/replies/counts`);
+      return;
+    }
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/review/replies/counts`)
+      .flush(counts);
   }
 
   it('loads the game matching the decoded route param', () => {
@@ -155,22 +167,20 @@ describe('GameDetailComponent', () => {
     createReq.flush('created');
 
     // submitReview() reloads the reviews for the game after a successful post
+    const reloaded = [
+      {
+        id: 'r1',
+        title: 'Portal 2',
+        username: 'toni',
+        comment: 'Loved it',
+        userScore: 10,
+        likeCount: 0,
+      },
+    ];
     httpMock
       .expectOne((r) => r.url === `${environment.apiUrl}/game/searchFilter`)
-      .flush(
-        gamePage({
-          reviews: [
-            {
-              id: 'r1',
-              title: 'Portal 2',
-              username: 'toni',
-              comment: 'Loved it',
-              userScore: 10,
-              likeCount: 0,
-            },
-          ],
-        }),
-      );
+      .flush(gamePage({ reviews: reloaded }));
+    flushReplyCounts(reloaded);
 
     expect(fixture.componentInstance.submittingReview()).toBe(false);
     expect(toastSuccessSpy).toHaveBeenCalled();
@@ -208,5 +218,70 @@ describe('GameDetailComponent', () => {
     const reviews = fixture.componentInstance.reviews();
     expect(reviews.find((r) => r.id === 'r1')?.likeCount).toBe(1);
     expect(reviews.find((r) => r.id === 'r2')?.likeCount).toBe(4);
+  });
+
+  it('asks for the reply counts of all the reviews in one call and keeps them by review id', () => {
+    const fixture = create();
+    flushGameLookup(
+      gamePage({
+        reviews: [
+          { id: 'r1', title: 'Portal 2', username: 'a', comment: 'x', userScore: 9, likeCount: 1 },
+          { id: 'r2', title: 'Portal 2', username: 'b', comment: 'y', userScore: 7, likeCount: 5 },
+        ],
+      }),
+      { r2: 3 },
+    );
+
+    expect(fixture.componentInstance.replyCounts()).toEqual({ r2: 3 });
+  });
+
+  it('still shows the reviews when the reply counts cannot be loaded', () => {
+    const fixture = create();
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/game/searchFilter`)
+      .flush(
+        gamePage({
+          reviews: [
+            {
+              id: 'r1',
+              title: 'Portal 2',
+              username: 'a',
+              comment: 'x',
+              userScore: 9,
+              likeCount: 1,
+            },
+          ],
+        }),
+      );
+    httpMock
+      .expectOne((r) => r.url === `${environment.apiUrl}/review/replies/counts`)
+      .flush('boom', { status: 500, statusText: 'Server Error' });
+
+    expect(fixture.componentInstance.reviews().length).toBe(1);
+    expect(fixture.componentInstance.replyCounts()).toEqual({});
+  });
+
+  it('the review form uses the score picker, defaulting to 8', () => {
+    const fixture = create();
+    flushGameLookup();
+    fixture.detectChanges();
+
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-score-picker')).toBeTruthy();
+    expect(el.querySelector('input[type="number"]')).toBeNull();
+    expect(fixture.componentInstance.reviewForm.value.userScore).toBe(8);
+  });
+
+  it('picking a score in the widget updates the form control', () => {
+    const fixture = create();
+    flushGameLookup();
+    fixture.detectChanges();
+
+    const ticks = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>(
+      'app-score-picker [role="radio"]',
+    );
+    ticks[9].click();
+
+    expect(fixture.componentInstance.reviewForm.value.userScore).toBe(10);
   });
 });
