@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TranslationService } from '../../../core/services/translation.service';
 import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-shell.component';
 import { ToastService } from '../../../core/services/toast.service';
+import { USERNAME_PATTERN } from '../../../core/validators/password.validators';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +21,7 @@ import { ToastService } from '../../../core/services/toast.service';
           <input
             formControlName="username"
             type="text"
+            maxlength="20"
             class="gh-input"
             [placeholder]="i18n.t('auth.login.usernamePlaceholder')"
           />
@@ -72,7 +74,15 @@ export class LoginComponent {
   readonly loading = signal(false);
 
   readonly form = this.fb.nonNullable.group({
-    username: ['', Validators.required],
+    username: [
+      '',
+      [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(20),
+        Validators.pattern(USERNAME_PATTERN),
+      ],
+    ],
     password: ['', [Validators.required, Validators.minLength(8), Validators.maxLength(32)]],
   });
 
