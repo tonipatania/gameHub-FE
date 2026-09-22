@@ -141,7 +141,8 @@ export class ResetPasswordComponent {
       { key: 'auth.signup.passwordRuleMinLength', met: value.length >= 8 },
       { key: 'auth.signup.passwordRuleMaxLength', met: value.length <= 32 },
       { key: 'auth.signup.passwordRuleUppercase', met: /[A-Z]/.test(value) },
-      { key: 'auth.signup.passwordRuleSpecialChar', met: /[^A-Za-z0-9]/.test(value) },
+      { key: 'auth.signup.passwordRuleSpecialChar', met: /[^A-Za-z0-9\s]/.test(value) },
+      { key: 'auth.signup.passwordRuleNoSpaces', met: value.length === 0 || !/\s/.test(value) },
     ];
   });
 
