@@ -8,6 +8,7 @@ import { AuthShellComponent } from '../../../shared/components/auth-shell/auth-s
 import { ToastService } from '../../../core/services/toast.service';
 import {
   PASSWORD_PATTERN,
+  USERNAME_PATTERN,
   passwordsMatchValidator,
 } from '../../../core/validators/password.validators';
 
@@ -30,7 +31,10 @@ import {
 
         <label class="mb-4 block">
           <span class="gh-label">{{ i18n.t('auth.signup.usernameLabel') }}</span>
-          <input formControlName="username" class="gh-input" />
+          <input formControlName="username" maxlength="20" class="gh-input" />
+          <span class="mt-1 block text-xs text-slate-500">{{
+            i18n.t('auth.signup.usernameHint')
+          }}</span>
         </label>
 
         <label class="mb-4 block">
@@ -67,6 +71,10 @@ import {
               <li [class]="passwordRules().hasSpecialChar ? 'text-emerald-400' : 'text-slate-400'">
                 <span class="mr-1">{{ passwordRules().hasSpecialChar ? '✓' : '○' }}</span>
                 {{ i18n.t('auth.signup.passwordRuleSpecialChar') }}
+              </li>
+              <li [class]="passwordRules().noSpaces ? 'text-emerald-400' : 'text-slate-400'">
+                <span class="mr-1">{{ passwordRules().noSpaces ? '✓' : '○' }}</span>
+                {{ i18n.t('auth.signup.passwordRuleNoSpaces') }}
               </li>
             </ul>
           }
@@ -119,7 +127,15 @@ export class SignupComponent {
     {
       name: ['', Validators.required],
       surname: ['', Validators.required],
-      username: ['', Validators.required],
+      username: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(3),
+          Validators.maxLength(20),
+          Validators.pattern(USERNAME_PATTERN),
+        ],
+      ],
       email: ['', [Validators.required, Validators.email]],
       password: [
         '',
@@ -145,7 +161,8 @@ export class SignupComponent {
       minLength: value.length >= 8,
       maxLength: value.length <= 32,
       hasUppercase: /[A-Z]/.test(value),
-      hasSpecialChar: /[^A-Za-z0-9]/.test(value),
+      hasSpecialChar: /[^A-Za-z0-9\s]/.test(value),
+      noSpaces: value.length === 0 || !/\s/.test(value),
     };
   });
 
