@@ -41,7 +41,7 @@ describe('SignupComponent', () => {
   const validPayload = {
     name: 'A',
     surname: 'B',
-    username: 'ab',
+    username: 'abc',
     email: 'a@b.com',
     password: 'Password!',
   };
